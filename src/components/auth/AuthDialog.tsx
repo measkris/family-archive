@@ -160,11 +160,12 @@ export function AuthDialog({
             Continue with Google
           </Button>
 
-          <div className="relative flex items-center justify-center">
-            <div className="border-t border-stone-200 w-full" />
-            <span className="bg-[#fcfaf6] px-2.5 text-[11px] uppercase tracking-wider text-stone-400">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-stone-200" />
+            <span className="shrink-0 whitespace-nowrap text-[11px] font-medium uppercase tracking-wider text-stone-400">
               or with email
             </span>
+            <div className="h-px flex-1 bg-stone-200" />
           </div>
 
           <Tabs
