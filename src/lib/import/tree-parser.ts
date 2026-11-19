@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { FamilyMemberRecord, SpouseRecord } from '@/lib/data/lang-genealogy';
+import { normalizePlaceName } from '@/lib/geo/locations';
 
 export interface ParsedMemberDraft {
   tempId: string;
@@ -394,21 +395,42 @@ export function parseBrouwerTreeHtml(html: string, sourceUrl: string): SourcePar
     const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
     if (lines.length < 2) continue;
 
-    // Line 0 is typically "I." or "II-a." or "III -a."
-    const romanMatch = lines[0].match(/^(I{1,3}|IV|V)\s*-?\s*([a-z]{0,2})\.?/i);
+    // Line 0 is typically "I.", "II-a.", "III -a.", "IV -a.", "V-a.", "VI -a.", "VII -a."
+    const romanMatch = lines[0].match(/^(VIII|VII|VI|IV|V|I{1,3})(?:\s*-\s*([a-z]{1,3}))?\.?/i);
     const roman = romanMatch?.[1]?.toUpperCase() || 'I';
     const sub = romanMatch?.[2]?.toLowerCase() || '';
     const code = sub ? `${roman}-${sub}` : roman;
-    const generation =
-      roman === 'I' ? 1 : roman === 'II' ? 2 : roman === 'III' ? 3 : roman === 'IV' ? 4 : 5;
+    const romanToGen: Record<string, number> = {
+      I: 1,
+      II: 2,
+      III: 3,
+      IV: 4,
+      V: 5,
+      VI: 6,
+      VII: 7,
+      VIII: 8,
+    };
+    const generation = romanToGen[roman] || 1;
 
     const nameLine = (lines[1] || '').replace(/,\s*$/, '').replace(/\[.*?\]/g, '').trim();
     if (!nameLine || nameLine.length > 80) continue;
     const { firstName, lastName } = splitName(nameLine);
 
-    const summaryText = lines.slice(2, 8).join(' ');
+    const summaryText = lines.slice(2, 10).join(' ');
+    const fullBlockForParent = lines.slice(1, 12).join(' ');
     const isFemale = /\bDochter van\b/i.test(summaryText);
     const isMale = /\bZoon van\b/i.test(summaryText);
+
+    const parentRefMatch = fullBlockForParent.match(
+      /\[\s*(?:nr\.?\s*)?(VIII|VII|VI|IV|V|I{1,3})(?:\s*-\s*([a-z]{1,3}))?\s*\]/i
+    );
+    const extractedParentCode = parentRefMatch
+      ? parentRefMatch[2]
+        ? `${parentRefMatch[1].toUpperCase()}-${parentRefMatch[2].toLowerCase()}`
+        : parentRefMatch[1].toUpperCase()
+      : generation === 2
+      ? 'I'
+      : undefined;
 
     const bornMatch = summaryText.match(/geboren(?:\s+te\s+([^,]+))?\s+(?:op|ca\.?)\s+([^,.]+)/i);
     const diedMatch = summaryText.match(/overleden(?:\s+te\s+([^,]+))?\s+(?:op|ca\.?)\s+([^,.]+)/i);
@@ -422,19 +444,19 @@ export function parseBrouwerTreeHtml(html: string, sourceUrl: string): SourcePar
       fullName: `${firstName} ${lastName.replace(/\.$/, '')}`,
       gender: isFemale ? 'female' : isMale ? 'male' : 'unknown',
       generation,
-      parentCode: generation === 1 ? undefined : generation === 2 ? 'I' : undefined,
+      parentCode: extractedParentCode,
       branch: 'root',
       birthDate: bornMatch?.[2]?.trim(),
       birthYear: extractYear(bornMatch?.[2]),
-      birthPlace: bornMatch?.[1]?.trim(),
+      birthPlace: bornMatch?.[1] ? normalizePlaceName(bornMatch[1].trim()) : undefined,
       deathDate: diedMatch?.[2]?.trim(),
       deathYear: extractYear(diedMatch?.[2]),
-      deathPlace: diedMatch?.[1]?.trim(),
+      deathPlace: diedMatch?.[1] ? normalizePlaceName(diedMatch[1].trim()) : undefined,
       spouseName: marriedMatch?.[3]?.trim(),
       marriageDate: marriedMatch?.[2]?.trim(),
-      marriagePlace: marriedMatch?.[1]?.trim(),
+      marriagePlace: marriedMatch?.[1] ? normalizePlaceName(marriedMatch[1].trim()) : undefined,
       heritageTags: ['BrouwerTree Parenteel', 'Dutch East Indies'],
-      bio: summaryText.slice(0, 320),
+      bio: summaryText.replace(/\bMenado\b/g, 'Manado').slice(0, 320),
       sourceUrl,
     });
   }

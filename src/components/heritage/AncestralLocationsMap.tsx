@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Compass, Globe2, MapPin, Route } from 'lucide-react';
+import { Compass, Globe2, Layers, MapPin, Route } from 'lucide-react';
 import type { FamilyMemberRecord } from '@/lib/data/lang-genealogy';
 import {
   KNOWN_ANCESTRAL_LOCATIONS,
@@ -30,12 +30,38 @@ interface AncestralLocationsMapProps {
   members: FamilyMemberRecord[];
   focusedLocationId?: string | null;
   onSelectMemberById?: (memberId: string) => void;
-  /** Compact single-member mode for Profile Details */
+  /** Compact single-member mode for Profile Details / Inspector */
   singleLocationText?: string;
   secondaryLocationText?: string;
   personName?: string;
   heightClass?: string;
 }
+
+type TileStyleId = 'esri-street' | 'osm' | 'esri-atlas';
+
+const TILE_STYLES: Record<
+  TileStyleId,
+  { label: string; url: string; attribution: string; maxZoom: number }
+> = {
+  'esri-street': {
+    label: 'Street Map',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, OpenStreetMap contributors',
+    maxZoom: 18,
+  },
+  osm: {
+    label: 'OpenStreetMap',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  'esri-atlas': {
+    label: 'Heritage Atlas',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ',
+    maxZoom: 16,
+  },
+};
 
 const REGION_COLORS: Record<GeoLocationInfo['regionGroup'], string> = {
   sulawesi: '#73a922',
@@ -85,10 +111,12 @@ export function AncestralLocationsMap({
   const { t, tc } = useLanguage();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routesLayerRef = useRef<L.LayerGroup | null>(null);
   const markerByIdRef = useRef<Map<string, L.Marker>>(new Map());
 
+  const [tileStyle, setTileStyle] = useState<TileStyleId>('esri-street');
   const [showRoutes, setShowRoutes] = useState(true);
   const [clickedPinId, setClickedPinId] = useState<string | null>(null);
   const [lastFocusedProp, setLastFocusedProp] = useState<string | null | undefined>(
@@ -169,11 +197,19 @@ export function AncestralLocationsMap({
     return Array.from(byId.values()).filter(
       (p) =>
         p.members.length > 0 ||
-        ['place-manado', 'place-tondano', 'place-kema', 'place-blitar', 'place-groningen', 'place-the-hague', 'place-calgary'].includes(p.id)
+        [
+          'place-manado',
+          'place-tondano',
+          'place-kema',
+          'place-blitar',
+          'place-groningen',
+          'place-the-hague',
+          'place-calgary',
+        ].includes(p.id)
     );
   }, [isSingleMode, singleLocationText, secondaryLocationText, members]);
 
-  // Initialize Leaflet map once
+  // Initialize Leaflet map once + attach ResizeObserver for tab/dialog layout changes
   useEffect(() => {
     const el = containerRef.current;
     if (!el || mapRef.current) return;
@@ -189,21 +225,27 @@ export function AncestralLocationsMap({
       worldCopyJump: true,
     });
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
     markersLayerRef.current = L.layerGroup().addTo(map);
     routesLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
 
+    const ro = new ResizeObserver(() => {
+      map.invalidateSize({ animate: false });
+    });
+    ro.observe(el);
+
+    const t1 = window.setTimeout(() => map.invalidateSize({ animate: false }), 120);
+    const t2 = window.setTimeout(() => map.invalidateSize({ animate: false }), 450);
+
     const markersMap = markerByIdRef.current;
 
     return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
+      tileLayerRef.current = null;
       markersLayerRef.current = null;
       routesLayerRef.current = null;
       markersMap.clear();
@@ -211,7 +253,35 @@ export function AncestralLocationsMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Render markers & routes whenever pins or showRoutes change
+  // Swap keyless tile layer whenever tileStyle changes (with automatic fallback on error)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+      tileLayerRef.current = null;
+    }
+
+    const cfg = TILE_STYLES[tileStyle];
+    let errorCount = 0;
+    const layer = L.tileLayer(cfg.url, {
+      attribution: cfg.attribution,
+      maxZoom: cfg.maxZoom,
+    });
+
+    layer.on('tileerror', () => {
+      errorCount += 1;
+      if (errorCount === 4 && tileStyle === 'esri-street') {
+        setTileStyle('osm');
+      }
+    });
+
+    layer.addTo(map);
+    tileLayerRef.current = layer;
+    map.invalidateSize({ animate: false });
+  }, [tileStyle]);
+
+  // Render markers & migration routes
   useEffect(() => {
     const map = mapRef.current;
     const markersLayer = markersLayerRef.current;
@@ -273,7 +343,7 @@ export function AncestralLocationsMap({
             {
               color: seg.color,
               weight: 2,
-              opacity: 0.55,
+              opacity: 0.6,
               dashArray: '6, 6',
             }
           )
@@ -283,13 +353,13 @@ export function AncestralLocationsMap({
       }
     }
 
-    // Fit map bounds gracefully
     if (pins.length === 1) {
       map.setView([pins[0].lat, pins[0].lon], isSingleMode ? 10 : 8);
     } else if (pins.length > 1) {
       const bounds = L.latLngBounds(pins.map((p) => [p.lat, p.lon] as [number, number]));
       map.fitBounds(bounds, { padding: [36, 36], maxZoom: isSingleMode ? 9 : 6 });
     }
+    map.invalidateSize({ animate: false });
   }, [pins, showRoutes, isSingleMode, personName, t.mapMembersLinked, tc]);
 
   // Fly to focused location when triggered externally
@@ -300,7 +370,7 @@ export function AncestralLocationsMap({
     mapRef.current.flyTo([pin.lat, pin.lon], 10, { duration: 0.9 });
     const marker = markerByIdRef.current.get(pin.id);
     if (marker) {
-      setTimeout(() => marker.openPopup(), 450);
+      window.setTimeout(() => marker.openPopup(), 450);
     }
   }, [focusedLocationId, pins]);
 
@@ -370,20 +440,44 @@ export function AncestralLocationsMap({
             </Button>
           </div>
 
-          <Button
-            type="button"
-            size="sm"
-            variant={showRoutes ? 'default' : 'outline'}
-            className="h-7 px-2.5 text-xs"
-            onClick={() => setShowRoutes((v) => !v)}
-          >
-            <Route className="size-3.5" /> {t.mapToggleRoutes}
-          </Button>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="inline-flex items-center rounded-md border border-stone-200 bg-stone-50 p-0.5 text-[11px]">
+              <Layers className="size-3 text-stone-500 mx-1.5" />
+              {(['esri-street', 'osm', 'esri-atlas'] as TileStyleId[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTileStyle(id)}
+                  className={`rounded px-2 py-0.5 font-medium transition-colors cursor-pointer ${
+                    tileStyle === id
+                      ? 'bg-[#0b4a68] text-white'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  {TILE_STYLES[id].label}
+                </button>
+              ))}
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              variant={showRoutes ? 'default' : 'outline'}
+              className="h-7 px-2.5 text-xs"
+              onClick={() => setShowRoutes((v) => !v)}
+            >
+              <Route className="size-3.5" /> {t.mapToggleRoutes}
+            </Button>
+          </div>
         </div>
       )}
 
-      <div className="relative rounded-xl overflow-hidden border border-stone-300 shadow-xs bg-stone-100">
-        <div ref={containerRef} className={`w-full ${heightClass} z-0`} />
+      <div className="relative rounded-xl overflow-hidden border border-stone-300 shadow-xs bg-[#e5edf2]">
+        <div
+          ref={containerRef}
+          className={`w-full ${heightClass} z-0`}
+          style={{ minHeight: isSingleMode ? 200 : 340 }}
+        />
       </div>
 
       {/* Interactive Pin Drawer showing linked ancestors for clicked city */}

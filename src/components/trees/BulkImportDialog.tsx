@@ -60,12 +60,37 @@ interface BulkImportDialogProps {
 
 const PRESET_SOURCES = [
   {
-    label: 'BrouwerTree HTML (Lang)',
+    label: 'BrouwerTree Gen I–II',
     url: 'https://www.brouwertree.com/langgene.html',
     badge: 'HTML Parenteel',
   },
   {
-    label: 'OpenArchives.nl API (Kuitert)',
+    label: 'BrouwerTree Gen III',
+    url: 'https://www.brouwertree.com/langgene3.html',
+    badge: 'langgene3',
+  },
+  {
+    label: 'BrouwerTree Gen IV',
+    url: 'https://www.brouwertree.com/langgene4.html',
+    badge: 'langgene4',
+  },
+  {
+    label: 'BrouwerTree Gen V',
+    url: 'https://www.brouwertree.com/langgene5.html',
+    badge: 'langgene5',
+  },
+  {
+    label: 'BrouwerTree Gen VI',
+    url: 'https://www.brouwertree.com/langgene6.html',
+    badge: 'langgene6',
+  },
+  {
+    label: 'BrouwerTree Gen VII',
+    url: 'https://www.brouwertree.com/langgene7.html',
+    badge: 'langgene7',
+  },
+  {
+    label: 'OpenArchives.nl (Kuitert)',
     url: 'https://api.openarch.nl/1.0/records/search.json?name=Kuitert&number_show=15',
     badge: 'REST JSON',
   },

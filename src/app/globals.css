@@ -135,3 +135,10 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Prevent Tailwind v4 preflight img rules from collapsing Leaflet map tiles */
+.leaflet-container img,
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}

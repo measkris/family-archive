@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import '@xyflow/react/dist/style.css';
 import {
   Background,
@@ -50,6 +51,15 @@ import { useLanguage } from '@/components/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const AncestralLocationsMap = dynamic(
+  () => import('@/components/heritage/AncestralLocationsMap').then((m) => m.AncestralLocationsMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[190px] w-full rounded-lg" />,
+  }
+);
 import {
   Select,
   SelectContent,
@@ -300,7 +310,7 @@ function AncestryTreeCanvasInner({
   const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
   const [direction, setDirection] = useState<'TB' | 'LR'>('TB');
   const [branchFilter, setBranchFilter] = useState<string>('all');
-  const [maxGen, setMaxGen] = useState<string>('4');
+  const [maxGen, setMaxGen] = useState<string>('8');
   const [traceLineage, setTraceLineage] = useState<boolean>(false);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -320,7 +330,7 @@ function AncestryTreeCanvasInner({
   }, []);
 
   const filteredMembers = useMemo(() => {
-    const genLimit = Number(maxGen) || 4;
+    const genLimit = Number(maxGen) || 8;
     return members.filter((m) => {
       if (m.generation > genLimit) return false;
       if (branchFilter !== 'all') {
@@ -636,6 +646,7 @@ function AncestryTreeCanvasInner({
                     <SelectItem value="2">{t.gen1To2}</SelectItem>
                     <SelectItem value="3">{t.gen1To3}</SelectItem>
                     <SelectItem value="4">{t.gen1To4}</SelectItem>
+                    <SelectItem value="8">All Gen (I – VIII)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1065,6 +1076,28 @@ function AncestryTreeCanvasInner({
                     </div>
                   </div>
                 </div>
+
+                {/* Live Interactive Pin Map inside Right Inspector Drawer */}
+                {(inspector.birthPlace || inspector.deathPlace || inspector.memberRef.region) && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1">
+                        <MapPin className="size-3 text-[#73a922]" />
+                        {t.ancestralMapLocation}
+                      </h4>
+                      <span className="text-[10px] font-medium text-[#0b4a68] truncate max-w-[165px]">
+                        {tc(inspector.birthPlace || inspector.memberRef.region)}
+                      </span>
+                    </div>
+                    <AncestralLocationsMap
+                      members={members}
+                      singleLocationText={inspector.birthPlace || inspector.memberRef.region}
+                      secondaryLocationText={inspector.deathPlace}
+                      personName={inspector.name}
+                      heightClass="h-[190px]"
+                    />
+                  </div>
+                )}
 
                 {/* Partner card when inspecting a Spouse */}
                 {inspector.kind === 'spouse' && (
