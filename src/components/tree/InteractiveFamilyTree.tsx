@@ -582,7 +582,7 @@ function AncestryTreeCanvasInner({
   }, [selectedPerson, members]);
 
   return (
-    <div className="relative flex h-[78vh] min-h-[620px] w-full rounded-xl border border-stone-700/40 bg-[#494b4d] overflow-hidden shadow-xl">
+    <div className="relative flex h-[70vh] min-h-[500px] sm:h-[78vh] sm:min-h-[620px] w-full rounded-xl border border-stone-700/40 bg-[#494b4d] overflow-hidden shadow-xl">
       {/* Main Ancestry Charcoal Chart Canvas */}
       <div className="relative flex-1 h-full min-w-0">
         <ReactFlow
@@ -602,15 +602,15 @@ function AncestryTreeCanvasInner({
 
           {/* Top Floating Ancestry Utility Bar */}
           <Panel position="top-left" className="!m-0 w-full pointer-events-none">
-            <div className="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-b from-[#2f3133]/95 to-[#2f3133]/80 backdrop-blur-md px-3.5 py-2 text-white border-b border-white/10 pointer-events-auto">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold tracking-wide text-stone-100 flex items-center gap-1.5">
-                  <GitBranch className="size-3.5 text-[#8bc34a]" />
-                  {treeName}
+            <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 bg-gradient-to-b from-[#2f3133]/95 to-[#2f3133]/80 backdrop-blur-md px-2.5 sm:px-3.5 py-2 text-white border-b border-white/10 pointer-events-auto">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-stone-100 flex items-center gap-1.5 max-w-[160px] sm:max-w-none truncate">
+                  <GitBranch className="size-3.5 text-[#8bc34a] shrink-0" />
+                  <span className="truncate">{treeName}</span>
                 </span>
 
                 <Select value={branchFilter} onValueChange={setBranchFilter}>
-                  <SelectTrigger className="h-7 w-[155px] text-[11px] bg-white/10 border-white/15 text-white">
+                  <SelectTrigger className="h-7 w-[125px] sm:w-[155px] text-[11px] bg-white/10 border-white/15 text-white">
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent>
@@ -623,7 +623,7 @@ function AncestryTreeCanvasInner({
                 </Select>
 
                 <Select value={maxGen} onValueChange={setMaxGen}>
-                  <SelectTrigger className="h-7 w-[122px] text-[11px] bg-white/10 border-white/15 text-white">
+                  <SelectTrigger className="h-7 w-[98px] sm:w-[122px] text-[11px] bg-white/10 border-white/15 text-white">
                     <SelectValue placeholder="Generations" />
                   </SelectTrigger>
                   <SelectContent>
@@ -681,14 +681,14 @@ function AncestryTreeCanvasInner({
                                 onClick={() => handleJumpToPerson(item)}
                                 className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-xs hover:bg-stone-100 cursor-pointer"
                               >
-                                <span className="size-7 rounded overflow-hidden shrink-0">
+                                <div className="size-7 rounded overflow-hidden shrink-0">
                                   <OptimizedPortrait
                                     src={photo}
                                     alt={name}
                                     gender={gender}
                                     width={64}
                                   />
-                                </span>
+                                </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="font-semibold truncate">{name}</div>
                                   <div className="text-[10px] text-stone-500 truncate">{sub}</div>
@@ -798,9 +798,9 @@ function AncestryTreeCanvasInner({
             </div>
           </Panel>
 
-          {/* Bottom-Left Minimap — high-contrast so you can see exactly where the view is */}
+          {/* Bottom-Left Minimap — high-contrast (hidden on very small phones) */}
           {showMinimap && (
-            <Panel position="bottom-left" className="!m-3">
+            <Panel position="bottom-left" className="!m-3 hidden sm:block">
               <div className="relative rounded-lg overflow-hidden border-2 border-[#1f2528] bg-[#f1efe9] shadow-xl">
                 <button
                   type="button"
@@ -840,11 +840,11 @@ function AncestryTreeCanvasInner({
         </ReactFlow>
       </div>
 
-      {/* Right Slide-In Details Panel — ONLY shown once the user clicks a specific person (member OR spouse) */}
+      {/* Right Slide-In Details Panel — full-width overlay on mobile, side panel on md+ */}
       {inspector && (
         <aside
           key={inspector.key}
-          className="w-[330px] sm:w-[360px] shrink-0 h-full bg-white text-[#222426] border-l border-stone-300 flex flex-col overflow-hidden z-20 animate-slide-in-right"
+          className="absolute inset-0 md:static w-full md:w-[360px] shrink-0 h-full bg-white text-[#222426] md:border-l border-stone-300 flex flex-col overflow-hidden z-30 md:z-20 animate-slide-in-right"
         >
           {/* Quick Person Header */}
           <div className="p-4 border-b border-stone-200 bg-[#faf9f7]">
@@ -1065,14 +1065,14 @@ function AncestryTreeCanvasInner({
                       }
                       className="flex w-full items-center gap-2.5 rounded-lg border border-stone-200 hover:border-[#73a922] bg-white p-2.5 text-left transition-colors cursor-pointer"
                     >
-                      <span className="size-9 rounded-full overflow-hidden border border-stone-200 shrink-0">
+                      <div className="size-9 rounded-full overflow-hidden border border-stone-200 shrink-0">
                         <OptimizedPortrait
                           src={inspector.memberRef.photoUrl}
                           alt={inspector.memberRef.fullName}
                           gender={inspector.memberRef.gender}
                           width={96}
                         />
-                      </span>
+                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-semibold text-stone-900 truncate">
                           {inspector.memberRef.fullName}
@@ -1099,14 +1099,14 @@ function AncestryTreeCanvasInner({
                         }
                         className="flex w-full items-center gap-2.5 rounded-lg border border-stone-200 hover:border-[#73a922] bg-white p-2.5 text-left transition-colors cursor-pointer"
                       >
-                        <span className="size-9 rounded-full overflow-hidden border border-stone-200 shrink-0">
+                        <div className="size-9 rounded-full overflow-hidden border border-stone-200 shrink-0">
                           <OptimizedPortrait
                             src={inspector.parent.photoUrl}
                             alt={inspector.parent.fullName}
                             gender={inspector.parent.gender}
                             width={96}
                           />
-                        </span>
+                        </div>
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-semibold text-stone-900 truncate">
                             {inspector.fatherName && inspector.motherName
@@ -1188,14 +1188,14 @@ function AncestryTreeCanvasInner({
                           onClick={() => handleJumpToPerson({ kind: 'member', member: child })}
                           className="flex w-full items-center gap-2.5 rounded-lg border border-stone-200 hover:border-[#73a922] hover:bg-[#f7faf2] bg-white p-2.5 text-left transition-colors cursor-pointer"
                         >
-                          <span className="size-9 rounded-full overflow-hidden border border-stone-200 shrink-0">
+                          <div className="size-9 rounded-full overflow-hidden border border-stone-200 shrink-0">
                             <OptimizedPortrait
                               src={child.photoUrl}
                               alt={child.fullName}
                               gender={child.gender}
                               width={96}
                             />
-                          </span>
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="text-xs font-semibold text-stone-900 truncate">
                               {child.fullName}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PersonAvatarIllustration } from '@/components/ui/PersonAvatarIllustration';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 export function getOptimizedImageUrl(url: string, width = 320): string {
   if (!url) return url;
   if (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
-    // Avoid double-transforming if already transformed
     if (url.includes('/image/upload/f_auto')) return url;
     return url.replace(
       '/image/upload/',
@@ -41,10 +40,20 @@ export function OptimizedPortrait({
   imgClassName,
   priority = false,
 }: OptimizedPortraitProps) {
-  const [loaded, setLoaded] = useState(false);
-  const [errored, setErrored] = useState(false);
+  const optimizedSrc = src ? getOptimizedImageUrl(src, width) : '';
+  const [loadedSrc, setLoadedSrc] = useState<string>('');
+  const [erroredSrc, setErroredSrc] = useState<string>('');
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  if (!src || errored) {
+  // Handle cached / SSR-preloaded images where onLoad fired before React hydrated
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth > 0 && optimizedSrc) {
+      setLoadedSrc(optimizedSrc);
+    }
+  }, [optimizedSrc]);
+
+  if (!optimizedSrc || erroredSrc === optimizedSrc) {
     return (
       <div className={cn('relative size-full overflow-hidden', className)}>
         <PersonAvatarIllustration gender={gender} />
@@ -52,21 +61,22 @@ export function OptimizedPortrait({
     );
   }
 
-  const optimizedSrc = getOptimizedImageUrl(src, width);
+  const isLoaded = loadedSrc === optimizedSrc;
 
   return (
     <div className={cn('relative size-full overflow-hidden bg-stone-200', className)}>
-      {!loaded && <Skeleton className="absolute inset-0 size-full rounded-none" />}
+      {!isLoaded && <Skeleton className="absolute inset-0 size-full rounded-none" />}
       <img
+        ref={imgRef}
         src={optimizedSrc}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        onLoad={() => setLoaded(true)}
-        onError={() => setErrored(true)}
+        onLoad={() => setLoadedSrc(optimizedSrc)}
+        onError={() => setErroredSrc(optimizedSrc)}
         className={cn(
           'size-full object-cover object-top transition-opacity duration-300',
-          loaded ? 'opacity-100' : 'opacity-0',
+          isLoaded ? 'opacity-100' : 'opacity-0',
           imgClassName
         )}
       />

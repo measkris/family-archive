@@ -376,7 +376,7 @@ export function FamilyTreeWorkspace({
     <div className="min-h-screen flex flex-col">
       {/* Top Site Brand Navigation Bar */}
       <header className="sticky top-0 z-30 border-b border-stone-200/90 bg-white/95 backdrop-blur-md text-[#182635] shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Logo (transparent, no box) + Title */}
           <button
             type="button"
@@ -384,21 +384,21 @@ export function FamilyTreeWorkspace({
               setProfileTarget(null);
               setActiveTab('tree');
             }}
-            className="flex items-center gap-2.5 text-left group cursor-pointer"
+            className="flex items-center gap-2 sm:gap-2.5 text-left group cursor-pointer min-w-0"
           >
-            <FamilyArchiveLogo className="size-10 drop-shadow-[0_1px_2px_rgba(11,74,104,0.12)] group-hover:scale-105 transition-transform" />
-            <div className="leading-tight">
-              <div className="font-heritage text-2xl font-bold tracking-tight text-[#142536] leading-none">
+            <FamilyArchiveLogo className="size-8 sm:size-10 shrink-0 drop-shadow-[0_1px_2px_rgba(11,74,104,0.12)] group-hover:scale-105 transition-transform" />
+            <div className="leading-tight min-w-0">
+              <div className="font-heritage text-xl sm:text-2xl font-bold tracking-tight text-[#142536] leading-none truncate">
                 Family Archive
               </div>
-              <div className="text-[11px] font-medium text-[#52697d] tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-[11px] font-medium text-[#52697d] tracking-wide mt-0.5 truncate">
                 Interactive Genealogy &amp; Heritage
               </div>
             </div>
           </button>
 
           {/* Right Global Actions */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <span className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600">
               <FolderTree className="size-3.5 text-[#0b4a68]" />
               <span>
@@ -410,7 +410,7 @@ export function FamilyTreeWorkspace({
             <Button
               size="sm"
               variant="outline"
-              className="h-9 px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+              className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
               onClick={() => setCreateTreeOpen(true)}
             >
               <GitBranch className="size-3.5 text-[#0b4a68]" />
@@ -420,7 +420,7 @@ export function FamilyTreeWorkspace({
 
             <Button
               size="sm"
-              className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-9 px-4 shadow-xs"
+              className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm shadow-xs"
               onClick={() => {
                 setEditingMember(null);
                 const parentCandidate =
@@ -433,7 +433,9 @@ export function FamilyTreeWorkspace({
                 setFormOpen(true);
               }}
             >
-              <Plus className="size-4" /> Add Member
+              <Plus className="size-4" />
+              <span className="hidden xs:inline sm:inline">Add Member</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
@@ -449,7 +451,7 @@ export function FamilyTreeWorkspace({
           }}
         />
 
-        <div className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 py-4 space-y-3.5">
+        <div className="relative mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-8 py-3.5 sm:py-4 space-y-3">
           {/* Family Tree Groups Header */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -497,7 +499,7 @@ export function FamilyTreeWorkspace({
                     }
                   }}
                   className={cn(
-                    'group relative min-w-[305px] max-w-[380px] shrink-0 rounded-xl border bg-white text-left overflow-hidden transition-all cursor-pointer',
+                    'group relative min-w-[260px] sm:min-w-[305px] max-w-[360px] shrink-0 rounded-xl border bg-white text-left overflow-hidden transition-all cursor-pointer',
                     isSelected
                       ? 'border-[#0b4a68] ring-2 ring-[#0b4a68]/20 shadow-md'
                       : 'border-stone-300/90 hover:border-stone-400 hover:shadow-sm opacity-90 hover:opacity-100'
@@ -505,14 +507,14 @@ export function FamilyTreeWorkspace({
                 >
                   <div className={cn('h-1.5 w-full bg-gradient-to-r', accent)} />
 
-                  <div className="p-3.5 space-y-2">
+                  <div className="p-3 sm:p-3.5 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center -space-x-2">
                         {previewAvatars.length > 0 ? (
                           previewAvatars.map((m) => (
-                            <span
+                            <div
                               key={m.id}
-                              className="size-8 rounded-full overflow-hidden border-2 border-white shadow-xs bg-stone-200"
+                              className="size-8 rounded-full overflow-hidden border-2 border-white shadow-xs bg-stone-200 shrink-0"
                             >
                               <OptimizedPortrait
                                 src={m.photoUrl}
@@ -521,12 +523,12 @@ export function FamilyTreeWorkspace({
                                 width={72}
                                 priority
                               />
-                            </span>
+                            </div>
                           ))
                         ) : (
-                          <span className="size-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400">
+                          <div className="size-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 shrink-0">
                             <GitBranch className="size-4" />
-                          </span>
+                          </div>
                         )}
                       </div>
 
@@ -543,7 +545,7 @@ export function FamilyTreeWorkspace({
                     </div>
 
                     <div>
-                      <h2 className="font-heritage text-xl font-bold leading-snug text-[#1a2634] group-hover:text-[#0b4a68] transition-colors">
+                      <h2 className="font-heritage text-lg sm:text-xl font-bold leading-snug text-[#1a2634] group-hover:text-[#0b4a68] transition-colors">
                         {tree.name}
                       </h2>
                       <p className="text-[11px] text-stone-600 flex items-center gap-1 mt-0.5 truncate">
@@ -564,7 +566,7 @@ export function FamilyTreeWorkspace({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 text-[#0b4a68] hover:underline font-medium truncate max-w-[165px]"
+                          className="inline-flex items-center gap-1 text-[#0b4a68] hover:underline font-medium truncate max-w-[155px]"
                         >
                           {tree.sourceLabel || 'Source'} <ExternalLink className="size-2.5 shrink-0" />
                         </a>
@@ -579,7 +581,7 @@ export function FamilyTreeWorkspace({
             <button
               type="button"
               onClick={() => setCreateTreeOpen(true)}
-              className="group min-w-[215px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
+              className="group min-w-[180px] sm:min-w-[215px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
             >
               <span className="flex size-10 items-center justify-center rounded-full bg-[#eef7df] text-[#4d7c0f] group-hover:bg-[#73a922] group-hover:text-white transition-colors">
                 <Plus className="size-5" />
@@ -608,7 +610,7 @@ export function FamilyTreeWorkspace({
                   onClick={() => handleOpenMemberProfile(m)}
                   className="inline-flex items-center gap-2 rounded-full border border-stone-300/90 bg-white hover:border-[#29b2ee] hover:shadow-xs pl-1 pr-3 py-0.5 text-xs text-stone-800 transition-all shrink-0 cursor-pointer"
                 >
-                  <span className="size-6 rounded-full overflow-hidden border border-[#29b2ee]/50 shrink-0">
+                  <div className="size-6 rounded-full overflow-hidden border border-[#29b2ee]/50 shrink-0 bg-stone-200">
                     <OptimizedPortrait
                       src={m.photoUrl}
                       alt={m.fullName}
@@ -616,7 +618,7 @@ export function FamilyTreeWorkspace({
                       width={64}
                       priority
                     />
-                  </span>
+                  </div>
                   <span className="font-semibold">{m.fullName}</span>
                   <span className="font-mono text-[10px] text-[#0b4a68]">{m.code}</span>
                 </button>
@@ -627,7 +629,7 @@ export function FamilyTreeWorkspace({
       </section>
 
       {/* Main Interactive Workspace */}
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 sm:px-6 lg:px-8 py-5">
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 sm:px-6 lg:px-8 py-4 sm:py-5">
         {activeProfileData ? (
           <AncestryProfileView
             member={activeProfileData.member}
@@ -652,26 +654,26 @@ export function FamilyTreeWorkspace({
           />
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <TabsList className="h-auto p-1 flex-wrap justify-start">
-                <TabsTrigger value="tree" className="py-2 px-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+              <TabsList className="w-full sm:w-auto h-auto p-1 overflow-x-auto flex-nowrap justify-start max-w-full">
+                <TabsTrigger value="tree" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Network className="size-4 text-[#73a922]" />
                   Family Tree Chart
                   <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
                     {activeTreeMembers.length}
                   </Badge>
                 </TabsTrigger>
-                <TabsTrigger value="heritage" className="py-2 px-4">
+                <TabsTrigger value="heritage" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Globe2 className="size-4 text-emerald-700" />
-                  Heritage &amp; Live Data APIs
+                  Heritage &amp; APIs
                 </TabsTrigger>
-                <TabsTrigger value="directory" className="py-2 px-4">
+                <TabsTrigger value="directory" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Table2 className="size-4 text-amber-700" />
                   Members Table
                 </TabsTrigger>
-                <TabsTrigger value="gallery" className="py-2 px-4">
+                <TabsTrigger value="gallery" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Camera className="size-4 text-rose-700" />
-                  Photo Archive &amp; Timeline
+                  Photo Archive
                 </TabsTrigger>
               </TabsList>
 
