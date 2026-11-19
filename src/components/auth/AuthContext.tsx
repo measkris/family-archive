@@ -10,9 +10,11 @@ import React, {
 } from 'react';
 import {
   createUserWithEmailAndPassword,
+  getRedirectResult,
   onIdTokenChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut as firebaseSignOut,
   updateProfile,
   type User,
@@ -27,6 +29,7 @@ interface AuthContextValue {
   signInWithEmail: (email: string, password: string) => Promise<AuthUser>;
   registerWithEmail: (email: string, password: string, displayName: string) => Promise<AuthUser>;
   signInWithGoogle: () => Promise<AuthUser>;
+  signInWithGoogleRedirect: () => Promise<void>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
   authFetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -68,6 +71,18 @@ export function AuthProvider({
     if (!auth) {
       return;
     }
+
+    getRedirectResult(auth)
+      .then(async (cred) => {
+        if (!cred?.user) return;
+        const verified = await syncServerSession(cred.user);
+        setFbUser(cred.user);
+        setUser(verified);
+        onSessionChanged?.(verified);
+      })
+      .catch(() => {
+        // Ignore empty or cancelled redirect attempts
+      });
 
     const unsubscribe = onIdTokenChanged(auth, async (nextFbUser) => {
       setFbUser(nextFbUser);
@@ -140,6 +155,12 @@ export function AuthProvider({
     return verified;
   }, [auth, onSessionChanged]);
 
+  const signInWithGoogleRedirect = useCallback(async () => {
+    if (!auth) throw new Error('Firebase Authentication is not configured.');
+    const provider = getGoogleAuthProvider();
+    await signInWithRedirect(auth, provider);
+  }, [auth]);
+
   const signOut = useCallback(async () => {
     if (auth) {
       await firebaseSignOut(auth);
@@ -180,6 +201,7 @@ export function AuthProvider({
       signInWithEmail,
       registerWithEmail,
       signInWithGoogle,
+      signInWithGoogleRedirect,
       signOut,
       getIdToken,
       authFetch,
@@ -191,6 +213,7 @@ export function AuthProvider({
       signInWithEmail,
       registerWithEmail,
       signInWithGoogle,
+      signInWithGoogleRedirect,
       signOut,
       getIdToken,
       authFetch,

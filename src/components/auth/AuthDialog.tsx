@@ -71,7 +71,13 @@ export function AuthDialog({
   onOpenChange,
   defaultTab = 'login',
 }: AuthDialogProps) {
-  const { signInWithEmail, registerWithEmail, signInWithGoogle, firebaseConfig } = useAuth();
+  const {
+    signInWithEmail,
+    registerWithEmail,
+    signInWithGoogle,
+    signInWithGoogleRedirect,
+    firebaseConfig,
+  } = useAuth();
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -110,6 +116,17 @@ export function AuthDialog({
     } catch (err) {
       setErrorState(mapFirebaseAuthError(err));
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleGoogleRedirect = async () => {
+    setErrorState(null);
+    setBusy(true);
+    try {
+      await signInWithGoogleRedirect();
+    } catch (err) {
+      setErrorState(mapFirebaseAuthError(err));
       setBusy(false);
     }
   };
@@ -159,6 +176,17 @@ export function AuthDialog({
             )}
             Continue with Google
           </Button>
+
+          <div className="text-center -mt-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void handleGoogleRedirect()}
+              className="text-[11px] font-medium text-[#0b4a68] hover:underline cursor-pointer disabled:opacity-50"
+            >
+              Can&apos;t click inside popup? Sign in with Google via full page
+            </button>
+          </div>
 
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-stone-200" />
