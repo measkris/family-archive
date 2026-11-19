@@ -6,6 +6,7 @@ import {
   Camera,
   CheckCircle2,
   ExternalLink,
+  FileSpreadsheet,
   FolderTree,
   GitBranch,
   Globe2,
@@ -36,6 +37,7 @@ import {
 } from '@/components/tree/InteractiveFamilyTree';
 import { MemberFormDialog } from '@/components/members/MemberFormDialog';
 import { CreateFamilyTreeDialog } from '@/components/trees/CreateFamilyTreeDialog';
+import { BulkImportDialog } from '@/components/trees/BulkImportDialog';
 import { cn } from '@/lib/utils';
 
 function TableTabSkeleton() {
@@ -227,6 +229,7 @@ export function FamilyTreeWorkspace({
   const [editingMember, setEditingMember] = useState<FamilyMemberRecord | null>(null);
   const [defaultParent, setDefaultParent] = useState<FamilyMemberRecord | null>(null);
   const [createTreeOpen, setCreateTreeOpen] = useState(false);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
 
   const activeTree = useMemo(
     () => familyTrees.find((t) => t.id === activeTreeId) || familyTrees[0] || DEFAULT_FAMILY_TREE_GROUP,
@@ -245,6 +248,31 @@ export function FamilyTreeWorkspace({
     setProfileTarget(null);
     setFocusMemberId(null);
   }, []);
+
+  const handleBulkImported = useCallback(
+    (result: {
+      tree: FamilyTreeGroupRecord;
+      members: FamilyMemberRecord[];
+      mode: 'existing' | 'new';
+    }) => {
+      setFamilyTrees((prev) => {
+        const exists = prev.some((t) => t.id === result.tree.id);
+        return exists
+          ? prev.map((t) => (t.id === result.tree.id ? result.tree : t))
+          : [...prev, result.tree];
+      });
+      setMembers((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const additions = result.members.filter((m) => !existingIds.has(m.id));
+        return [...prev, ...additions];
+      });
+      setActiveTreeId(result.tree.id);
+      setSelectedPerson(null);
+      setProfileTarget(null);
+      setFocusMemberId(null);
+    },
+    []
+  );
 
   // Resolve fresh profile record (for either a primary member or a spouse!)
   const activeProfileData = useMemo(() => {
@@ -411,6 +439,16 @@ export function FamilyTreeWorkspace({
               size="sm"
               variant="outline"
               className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+              onClick={() => setBulkImportOpen(true)}
+            >
+              <FileSpreadsheet className="size-3.5 text-[#73a922]" />
+              <span className="hidden sm:inline">Bulk Import</span>
+              <span className="sm:hidden">Import</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
               onClick={() => setCreateTreeOpen(true)}
             >
               <GitBranch className="size-3.5 text-[#0b4a68]" />
@@ -463,13 +501,22 @@ export function FamilyTreeWorkspace({
               </Badge>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCreateTreeOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#73a922]/40 bg-white/90 hover:bg-[#f4faea] px-3 py-1 text-xs font-semibold text-[#4d7c0f] shadow-2xs transition-colors cursor-pointer"
-            >
-              <Plus className="size-3.5" /> Add Family Tree Group
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBulkImportOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#0b4a68]/35 bg-white/90 hover:bg-sky-50 px-3 py-1 text-xs font-semibold text-[#0b4a68] shadow-2xs transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet className="size-3.5" /> Import Excel / URL
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreateTreeOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#73a922]/40 bg-white/90 hover:bg-[#f4faea] px-3 py-1 text-xs font-semibold text-[#4d7c0f] shadow-2xs transition-colors cursor-pointer"
+              >
+                <Plus className="size-3.5" /> Add Family Tree Group
+              </button>
+            </div>
           </div>
 
           {/* Family Tree Group Cards Strip */}
@@ -804,6 +851,15 @@ export function FamilyTreeWorkspace({
         open={createTreeOpen}
         onOpenChange={setCreateTreeOpen}
         onCreated={handleTreeCreated}
+      />
+
+      {/* Bulk Import Excel / CSV / JSON / API / URL Dialog */}
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        trees={familyTrees}
+        activeTreeId={activeTree.id}
+        onImported={handleBulkImported}
       />
     </div>
   );
