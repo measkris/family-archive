@@ -2,7 +2,7 @@
 
 Interactive photographic family tree, cultural heritage explorer, and live historical archive website (`family-archive`) built with **Next.js 16 (App Router)**, **Tailwind CSS 4**, **shadcn/ui**, **React Flow**, **Google Cloud Firestore**, and **Cloudinary**.
 
-Currently only featuring the **Jacob Lang & Maria Tampemawa Family** collection ([brouwertree.com/langgene.html](https://www.brouwertree.com/langgene.html) & `langgene3.html`).
+Currently featuring the **Jacob Lang & Maria Tampemawa Family** collection ([brouwertree.com/langgene.html](https://www.brouwertree.com/langgene.html) & `langgene3.html`).
 
 ## Key Features
 
