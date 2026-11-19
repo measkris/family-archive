@@ -16,14 +16,14 @@ function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        'flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm shadow-xs outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer',
+        'flex h-9 w-full items-center justify-between gap-2 whitespace-nowrap [&>span]:truncate rounded-md border border-input bg-background px-3 py-1.5 text-sm shadow-xs outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer',
         className
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-4 opacity-60" />
+        <ChevronDown className="size-4 shrink-0 opacity-60" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -60,7 +60,7 @@ function SelectItem({
   return (
     <SelectPrimitive.Item
       className={cn(
-        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pr-8 pl-2.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground',
+        'relative flex w-full cursor-pointer select-none items-center whitespace-nowrap rounded-sm py-1.5 pr-8 pl-2.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground',
         className
       )}
       {...props}

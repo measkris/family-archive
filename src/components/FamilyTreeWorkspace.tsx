@@ -269,6 +269,11 @@ function FamilyTreeWorkspaceInner({
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [shareTree, setShareTree] = useState<FamilyTreeGroupRecord | null>(null);
 
+  const treesCarouselRef = React.useRef<HTMLDivElement>(null);
+  const [activeTreeSlide, setActiveTreeSlide] = useState(0);
+  const ancestorsCarouselRef = React.useRef<HTMLDivElement>(null);
+  const [activeAncestorDot, setActiveAncestorDot] = useState(0);
+
   // Sync visible trees & members whenever signed-in account changes
   React.useEffect(() => {
     if (refreshTick === 0) return;
@@ -512,11 +517,12 @@ function FamilyTreeWorkspaceInner({
           >
             <FamilyArchiveLogo className="size-8 sm:size-10 shrink-0 drop-shadow-[0_1px_2px_rgba(11,74,104,0.12)] group-hover:scale-105 transition-transform" />
             <div className="leading-tight min-w-0">
-              <div className="font-heritage text-xl sm:text-2xl font-bold tracking-tight text-[#142536] leading-none truncate">
+              <div className="font-heritage text-lg sm:text-2xl font-bold tracking-tight text-[#142536] leading-none whitespace-nowrap">
                 Family Archive
               </div>
               <div className="text-[10px] sm:text-[11px] font-medium text-[#52697d] tracking-wide mt-0.5 truncate">
-                Interactive Genealogy &amp; Heritage
+                <span className="sm:hidden">Genealogy &amp; Heritage</span>
+                <span className="hidden sm:inline">Interactive Genealogy &amp; Heritage</span>
               </div>
             </div>
           </button>
@@ -536,28 +542,26 @@ function FamilyTreeWorkspaceInner({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+                  className="hidden md:inline-flex h-9 px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
                   onClick={() => setBulkImportOpen(true)}
                 >
                   <FileSpreadsheet className="size-3.5 text-[#73a922]" />
-                  <span className="hidden sm:inline">Bulk Import</span>
-                  <span className="sm:hidden">Import</span>
+                  <span>Bulk Import</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+                  className="hidden md:inline-flex h-9 px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
                   onClick={() => setCreateTreeOpen(true)}
                 >
                   <GitBranch className="size-3.5 text-[#0b4a68]" />
-                  <span className="hidden sm:inline">New Family Tree</span>
-                  <span className="sm:hidden">New Tree</span>
+                  <span>New Family Tree</span>
                 </Button>
 
                 {activeCanEdit && (
                   <Button
                     size="sm"
-                    className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2.5 sm:px-3.5 text-xs sm:text-sm shadow-xs"
+                    className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2.5 sm:px-3.5 text-xs sm:text-sm shadow-xs shrink-0"
                     onClick={() => {
                       setEditingMember(null);
                       const parentCandidate =
@@ -571,22 +575,22 @@ function FamilyTreeWorkspaceInner({
                     }}
                   >
                     <Plus className="size-4" />
-                    <span className="hidden md:inline">Add Member</span>
-                    <span className="md:hidden">Add</span>
+                    <span className="hidden sm:inline">Add Member</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 )}
 
-                <div className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 pl-2 pr-1.5 py-1">
+                <div className="flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 p-1 sm:pl-2 sm:pr-1.5">
                   {user.isSuperAdmin && (
                     <span
                       title="Super Admin — Full Edit Access Across All Trees"
-                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900"
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold text-amber-900"
                     >
                       <Crown className="size-3 text-amber-700" />
                       <span className="hidden sm:inline">Super Admin</span>
                     </span>
                   )}
-                  <span className="hidden md:inline text-xs font-medium text-stone-700 max-w-[140px] truncate">
+                  <span className="hidden lg:inline text-xs font-medium text-stone-700 max-w-[140px] truncate px-1">
                     {user.displayName || user.email}
                   </span>
                   <button
@@ -609,10 +613,11 @@ function FamilyTreeWorkspaceInner({
                 <Button
                   size="sm"
                   onClick={() => setAuthDialogOpen(true)}
-                  className="bg-[#0b4a68] hover:bg-[#093b54] text-white font-semibold h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm shadow-xs"
+                  className="bg-[#0b4a68] hover:bg-[#093b54] text-white font-semibold h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm shadow-xs"
                 >
                   <LogIn className="size-3.5" />
-                  Sign In / Register
+                  <span className="sm:hidden">Sign In</span>
+                  <span className="hidden sm:inline">Sign In / Register</span>
                 </Button>
               </>
             )}
@@ -692,7 +697,18 @@ function FamilyTreeWorkspaceInner({
           </div>
 
           {/* Family Tree Group Cards Strip */}
-          <div className="flex items-stretch gap-3 overflow-x-auto pb-1">
+          <div
+            ref={treesCarouselRef}
+            onScroll={() => {
+              const el = treesCarouselRef.current;
+              if (!el) return;
+              const maxScroll = Math.max(1, el.scrollWidth - el.clientWidth);
+              const totalDots = displayedTrees.length + 1;
+              const idx = Math.round((el.scrollLeft / maxScroll) * (totalDots - 1));
+              setActiveTreeSlide(Math.max(0, Math.min(totalDots - 1, idx)));
+            }}
+            className="flex items-stretch gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-1"
+          >
             {displayedTrees.map((tree) => {
               const isSelected = tree.id === activeTree.id;
               const treeMembers = members.filter(
@@ -721,7 +737,7 @@ function FamilyTreeWorkspaceInner({
                     }
                   }}
                   className={cn(
-                    'group relative min-w-[260px] sm:min-w-[305px] max-w-[360px] shrink-0 rounded-xl border bg-white text-left overflow-hidden transition-all cursor-pointer',
+                    'group relative w-[86vw] max-w-[340px] sm:w-auto sm:min-w-[305px] sm:max-w-[360px] shrink-0 snap-start rounded-xl border bg-white text-left overflow-hidden transition-all cursor-pointer',
                     isSelected
                       ? 'border-[#0b4a68] ring-2 ring-[#0b4a68]/20 shadow-md'
                       : 'border-stone-300/90 hover:border-stone-400 hover:shadow-sm opacity-90 hover:opacity-100'
@@ -847,7 +863,7 @@ function FamilyTreeWorkspaceInner({
               <button
                 type="button"
                 onClick={() => setCreateTreeOpen(true)}
-                className="group min-w-[180px] sm:min-w-[215px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
+                className="group min-w-[200px] sm:min-w-[215px] shrink-0 snap-start rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
               >
                 <span className="flex size-10 items-center justify-center rounded-full bg-[#eef7df] text-[#4d7c0f] group-hover:bg-[#73a922] group-hover:text-white transition-colors">
                   <Plus className="size-5" />
@@ -865,7 +881,7 @@ function FamilyTreeWorkspaceInner({
               <button
                 type="button"
                 onClick={() => setAuthDialogOpen(true)}
-                className="group min-w-[200px] sm:min-w-[235px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#0b4a68] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
+                className="group min-w-[210px] sm:min-w-[235px] shrink-0 snap-start rounded-xl border-2 border-dashed border-stone-300 hover:border-[#0b4a68] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
               >
                 <span className="flex size-10 items-center justify-center rounded-full bg-sky-50 text-[#0b4a68] group-hover:bg-[#0b4a68] group-hover:text-white transition-colors">
                   <LogIn className="size-5" />
@@ -882,32 +898,97 @@ function FamilyTreeWorkspaceInner({
             )}
           </div>
 
+          {/* Mobile Carousel Dots for Family Tree Groups */}
+          <div className="flex sm:hidden items-center justify-center gap-1.5">
+            {Array.from({ length: displayedTrees.length + 1 }).map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                aria-label={`Show tree card ${idx + 1}`}
+                onClick={() => {
+                  const el = treesCarouselRef.current;
+                  if (!el) return;
+                  const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+                  const totalDots = displayedTrees.length + 1;
+                  const left = totalDots > 1 ? (idx / (totalDots - 1)) * maxScroll : 0;
+                  el.scrollTo({ left, behavior: 'smooth' });
+                  setActiveTreeSlide(idx);
+                }}
+                className={cn(
+                  'h-1.5 rounded-full transition-all cursor-pointer',
+                  activeTreeSlide === idx
+                    ? 'w-5 bg-[#0b4a68]'
+                    : 'w-1.5 bg-stone-300 hover:bg-stone-400'
+                )}
+              />
+            ))}
+          </div>
+
           {/* Key Ancestors Ribbon for Active Family Tree Group */}
           {featuredAncestors.length > 0 && (
-            <div className="pt-2 border-t border-stone-300/70 flex items-center gap-2 overflow-x-auto pb-0.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 shrink-0 mr-1">
-                Key Ancestors ({activeTree.name.split(' ')[0]}):
-              </span>
-              {featuredAncestors.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => handleOpenMemberProfile(m)}
-                  className="inline-flex items-center gap-2 rounded-full border border-stone-300/90 bg-white hover:border-[#29b2ee] hover:shadow-xs pl-1 pr-3 py-0.5 text-xs text-stone-800 transition-all shrink-0 cursor-pointer"
-                >
-                  <div className="size-6 rounded-full overflow-hidden border border-[#29b2ee]/50 shrink-0 bg-stone-200">
-                    <OptimizedPortrait
-                      src={m.photoUrl}
-                      alt={m.fullName}
-                      gender={m.gender}
-                      width={64}
-                      priority
+            <div className="pt-2 border-t border-stone-300/70 space-y-1.5">
+              <div
+                ref={ancestorsCarouselRef}
+                onScroll={() => {
+                  const el = ancestorsCarouselRef.current;
+                  if (!el) return;
+                  const maxScroll = Math.max(1, el.scrollWidth - el.clientWidth);
+                  const dotCount = Math.min(featuredAncestors.length, 3);
+                  const idx = Math.round((el.scrollLeft / maxScroll) * (dotCount - 1));
+                  setActiveAncestorDot(Math.max(0, Math.min(dotCount - 1, idx)));
+                }}
+                className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5"
+              >
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 shrink-0 mr-1">
+                  Key Ancestors ({activeTree.name.split(' ')[0]}):
+                </span>
+                {featuredAncestors.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleOpenMemberProfile(m)}
+                    className="inline-flex items-center gap-2 rounded-full border border-stone-300/90 bg-white hover:border-[#29b2ee] hover:shadow-xs pl-1 pr-3 py-0.5 text-xs text-stone-800 transition-all shrink-0 cursor-pointer"
+                  >
+                    <div className="size-6 rounded-full overflow-hidden border border-[#29b2ee]/50 shrink-0 bg-stone-200">
+                      <OptimizedPortrait
+                        src={m.photoUrl}
+                        alt={m.fullName}
+                        gender={m.gender}
+                        width={64}
+                        priority
+                      />
+                    </div>
+                    <span className="font-semibold">{m.fullName}</span>
+                    <span className="font-mono text-[10px] text-[#0b4a68]">{m.code}</span>
+                  </button>
+                ))}
+              </div>
+
+              {featuredAncestors.length > 2 && (
+                <div className="flex sm:hidden items-center justify-center gap-1.5">
+                  {Array.from({ length: Math.min(featuredAncestors.length, 3) }).map((_, idx, arr) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      aria-label={`Scroll key ancestors group ${idx + 1}`}
+                      onClick={() => {
+                        const el = ancestorsCarouselRef.current;
+                        if (!el) return;
+                        const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+                        const left = arr.length > 1 ? (idx / (arr.length - 1)) * maxScroll : 0;
+                        el.scrollTo({ left, behavior: 'smooth' });
+                        setActiveAncestorDot(idx);
+                      }}
+                      className={cn(
+                        'h-1.5 rounded-full transition-all cursor-pointer',
+                        activeAncestorDot === idx
+                          ? 'w-4 bg-[#73a922]'
+                          : 'w-1.5 bg-stone-300 hover:bg-stone-400'
+                      )}
                     />
-                  </div>
-                  <span className="font-semibold">{m.fullName}</span>
-                  <span className="font-mono text-[10px] text-[#0b4a68]">{m.code}</span>
-                </button>
-              ))}
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -941,7 +1022,7 @@ function FamilyTreeWorkspaceInner({
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
-              <TabsList className="w-full sm:w-auto h-auto p-1 overflow-x-auto flex-nowrap justify-start max-w-full">
+              <TabsList className="w-full sm:w-auto h-auto p-1 overflow-x-auto no-scrollbar flex-nowrap justify-start max-w-full">
                 <TabsTrigger value="tree" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Network className="size-4 text-[#73a922]" />
                   Family Tree Chart

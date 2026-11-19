@@ -614,7 +614,7 @@ function AncestryTreeCanvasInner({
                 </span>
 
                 <Select value={branchFilter} onValueChange={setBranchFilter}>
-                  <SelectTrigger className="h-7 w-[125px] sm:w-[155px] text-[11px] bg-white/10 border-white/15 text-white">
+                  <SelectTrigger className="h-7 w-auto min-w-[126px] sm:min-w-[155px] max-w-[180px] sm:max-w-none px-2.5 text-[11px] whitespace-nowrap bg-white/10 border-white/15 text-white">
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent>
@@ -627,7 +627,7 @@ function AncestryTreeCanvasInner({
                 </Select>
 
                 <Select value={maxGen} onValueChange={setMaxGen}>
-                  <SelectTrigger className="h-7 w-[98px] sm:w-[122px] text-[11px] bg-white/10 border-white/15 text-white">
+                  <SelectTrigger className="h-7 w-auto min-w-[104px] sm:min-w-[124px] px-2.5 text-[11px] whitespace-nowrap bg-white/10 border-white/15 text-white">
                     <SelectValue placeholder="Generations" />
                   </SelectTrigger>
                   <SelectContent>
