@@ -617,7 +617,7 @@ export function BulkImportDialog({
                       <Input
                         value={newTreeRegion}
                         onChange={(e) => setNewTreeRegion(e.target.value)}
-                        placeholder="e.g. Menado, North Sulawesi"
+                        placeholder="e.g. Manado, North Sulawesi, Indonesia"
                         className="h-8 text-xs"
                       />
                     </div>

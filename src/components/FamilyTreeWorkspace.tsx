@@ -47,6 +47,7 @@ import { BulkImportDialog } from '@/components/trees/BulkImportDialog';
 import { TreeShareCollaboratorsDialog } from '@/components/trees/TreeShareCollaboratorsDialog';
 import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { LanguageToggle, useLanguage } from '@/components/i18n/LanguageContext';
 import type { AuthUser, PublicFirebaseConfig } from '@/lib/auth/types';
 import {
   canEditTree,
@@ -246,6 +247,7 @@ function FamilyTreeWorkspaceInner({
   refreshTick,
 }: FamilyTreeWorkspaceProps & { refreshTick: number }) {
   const { user, signOut, authFetch } = useAuth();
+  const { t, tc } = useLanguage();
   const [members, setMembers] = useState<FamilyMemberRecord[]>(initialMembers);
   const [familyTrees, setFamilyTrees] = useState<FamilyTreeGroupRecord[]>(
     initialFamilyTrees.length > 0 ? initialFamilyTrees : [DEFAULT_FAMILY_TREE_GROUP]
@@ -521,19 +523,22 @@ function FamilyTreeWorkspaceInner({
                 Family Archive
               </div>
               <div className="text-[10px] sm:text-[11px] font-medium text-[#52697d] tracking-wide mt-0.5 truncate">
-                <span className="sm:hidden">Genealogy &amp; Heritage</span>
-                <span className="hidden sm:inline">Interactive Genealogy &amp; Heritage</span>
+                <span className="sm:hidden">{t.brandSubtitleShort}</span>
+                <span className="hidden sm:inline">{t.brandSubtitle}</span>
               </div>
             </div>
           </button>
 
           {/* Right Global Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <LanguageToggle />
+
             <span className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600">
               <FolderTree className="size-3.5 text-[#0b4a68]" />
               <span>
-                {familyTrees.length} {familyTrees.length === 1 ? 'Tree Group' : 'Tree Groups'} ·{' '}
-                {members.length} Records
+                {familyTrees.length}{' '}
+                {familyTrees.length === 1 ? t.treeGroupSingular : t.treeGroupPlural} ·{' '}
+                {members.length} {t.recordsLabel}
               </span>
             </span>
 
@@ -546,7 +551,7 @@ function FamilyTreeWorkspaceInner({
                   onClick={() => setBulkImportOpen(true)}
                 >
                   <FileSpreadsheet className="size-3.5 text-[#73a922]" />
-                  <span>Bulk Import</span>
+                  <span>{t.bulkImport}</span>
                 </Button>
                 <Button
                   size="sm"
@@ -555,13 +560,13 @@ function FamilyTreeWorkspaceInner({
                   onClick={() => setCreateTreeOpen(true)}
                 >
                   <GitBranch className="size-3.5 text-[#0b4a68]" />
-                  <span>New Family Tree</span>
+                  <span>{t.newFamilyTree}</span>
                 </Button>
 
                 {activeCanEdit && (
                   <Button
                     size="sm"
-                    className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2.5 sm:px-3.5 text-xs sm:text-sm shadow-xs shrink-0"
+                    className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2 sm:px-3.5 text-xs sm:text-sm shadow-xs shrink-0"
                     onClick={() => {
                       setEditingMember(null);
                       const parentCandidate =
@@ -575,8 +580,8 @@ function FamilyTreeWorkspaceInner({
                     }}
                   >
                     <Plus className="size-4" />
-                    <span className="hidden sm:inline">Add Member</span>
-                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">{t.addMember}</span>
+                    <span className="sm:hidden">{t.addShort}</span>
                   </Button>
                 )}
 
@@ -587,7 +592,7 @@ function FamilyTreeWorkspaceInner({
                       className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold text-amber-900"
                     >
                       <Crown className="size-3 text-amber-700" />
-                      <span className="hidden sm:inline">Super Admin</span>
+                      <span className="hidden sm:inline">{t.superAdmin}</span>
                     </span>
                   )}
                   <span className="hidden lg:inline text-xs font-medium text-stone-700 max-w-[140px] truncate px-1">
@@ -596,19 +601,19 @@ function FamilyTreeWorkspaceInner({
                   <button
                     type="button"
                     onClick={() => void signOut()}
-                    title={`Sign out (${user.email})`}
+                    title={`${t.signOut} (${user.email})`}
                     className="inline-flex items-center gap-1 rounded-full bg-white hover:bg-rose-50 border border-stone-200 px-2 py-1 text-[11px] font-medium text-stone-700 hover:text-rose-700 transition-colors cursor-pointer"
                   >
                     <LogOut className="size-3" />
-                    <span className="hidden sm:inline">Sign Out</span>
+                    <span className="hidden sm:inline">{t.signOut}</span>
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[11px] font-medium text-stone-600">
+                <span className="hidden lg:inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[11px] font-medium text-stone-600">
                   <Lock className="size-3 text-stone-500" />
-                  Read-Only Public View
+                  {t.readOnlyPublic}
                 </span>
                 <Button
                   size="sm"
@@ -616,8 +621,8 @@ function FamilyTreeWorkspaceInner({
                   className="bg-[#0b4a68] hover:bg-[#093b54] text-white font-semibold h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm shadow-xs"
                 >
                   <LogIn className="size-3.5" />
-                  <span className="sm:hidden">Sign In</span>
-                  <span className="hidden sm:inline">Sign In / Register</span>
+                  <span className="sm:hidden">{t.signInShort}</span>
+                  <span className="hidden sm:inline">{t.signInRegister}</span>
                 </Button>
               </>
             )}
@@ -640,10 +645,11 @@ function FamilyTreeWorkspaceInner({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
-                <FolderTree className="size-3.5 text-[#0b4a68]" /> Family Tree Groups
+                <FolderTree className="size-3.5 text-[#0b4a68]" /> {t.treeGroupsLabel}
               </span>
               <Badge variant="outline" className="bg-white/80 text-[10px] font-mono">
-                {displayedTrees.length} {displayedTrees.length === 1 ? 'Collection' : 'Collections'}
+                {displayedTrees.length}{' '}
+                {displayedTrees.length === 1 ? t.collectionSingular : t.collectionPlural}
               </Badge>
 
               {user && (
@@ -658,7 +664,7 @@ function FamilyTreeWorkspaceInner({
                         : 'text-stone-600 hover:text-stone-900'
                     )}
                   >
-                    All Viewable ({familyTrees.length})
+                    {t.allViewable} ({familyTrees.length})
                   </button>
                   <button
                     type="button"
@@ -670,7 +676,7 @@ function FamilyTreeWorkspaceInner({
                         : 'text-stone-600 hover:text-stone-900'
                     )}
                   >
-                    My &amp; Invited Trees ({myTrees.length})
+                    {t.myInvitedTrees} ({myTrees.length})
                   </button>
                 </div>
               )}
@@ -683,14 +689,14 @@ function FamilyTreeWorkspaceInner({
                   onClick={() => setBulkImportOpen(true)}
                   className="inline-flex items-center gap-1.5 rounded-full border border-[#0b4a68]/35 bg-white/90 hover:bg-sky-50 px-3 py-1 text-xs font-semibold text-[#0b4a68] shadow-2xs transition-colors cursor-pointer"
                 >
-                  <FileSpreadsheet className="size-3.5" /> Import Excel / URL
+                  <FileSpreadsheet className="size-3.5" /> {t.importExcelUrl}
                 </button>
                 <button
                   type="button"
                   onClick={() => setCreateTreeOpen(true)}
                   className="inline-flex items-center gap-1.5 rounded-full border border-[#73a922]/40 bg-white/90 hover:bg-[#f4faea] px-3 py-1 text-xs font-semibold text-[#4d7c0f] shadow-2xs transition-colors cursor-pointer"
                 >
-                  <Plus className="size-3.5" /> Add Family Tree Group
+                  <Plus className="size-3.5" /> {t.addFamilyTreeGroup}
                 </button>
               </div>
             )}
@@ -773,56 +779,57 @@ function FamilyTreeWorkspaceInner({
                       <div className="flex flex-wrap items-center justify-end gap-1">
                         {isPrivate ? (
                           <span className="inline-flex items-center gap-0.5 rounded-full bg-sky-50 border border-sky-200 px-1.5 py-0.5 text-[10px] font-semibold text-[#0b4a68]">
-                            <Lock className="size-2.5" /> Private
+                            <Lock className="size-2.5" /> {t.privateBadge}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-0.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] font-medium text-stone-600">
-                            <Globe2 className="size-2.5" /> Public
+                            <Globe2 className="size-2.5" /> {t.publicBadge}
                           </span>
                         )}
 
                         {roleBadge === 'owner' && (
                           <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                            Owner
+                            {t.ownerBadge}
                           </span>
                         )}
                         {roleBadge === 'collaborator' && (
                           <span className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-800">
-                            Collaborator
+                            {t.collaboratorBadge}
                           </span>
                         )}
                         {roleBadge === 'super-admin' && (
                           <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                            <Shield className="size-2.5" /> Admin
+                            <Shield className="size-2.5" /> {t.adminBadge}
                           </span>
                         )}
 
                         {isSelected && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#eef7df] border border-[#73a922]/40 px-2 py-0.5 text-[10px] font-bold text-[#3f6212]">
-                            <CheckCircle2 className="size-3 text-[#73a922]" /> Active
+                            <CheckCircle2 className="size-3 text-[#73a922]" /> {t.activeBadge}
                           </span>
                         )}
                         <span className="rounded-full bg-stone-100 px-2 py-0.5 font-mono text-[10px] font-semibold text-stone-600">
-                          {treeMembers.length} {treeMembers.length === 1 ? 'person' : 'people'}
+                          {treeMembers.length}{' '}
+                          {treeMembers.length === 1 ? t.personSingular : t.personPlural}
                         </span>
                       </div>
                     </div>
 
                     <div>
                       <h2 className="font-heritage text-lg sm:text-xl font-bold leading-snug text-[#1a2634] group-hover:text-[#0b4a68] transition-colors">
-                        {tree.name}
+                        {tc(tree.name)}
                       </h2>
                       <p className="text-[11px] text-stone-600 flex items-center gap-1 mt-0.5 truncate">
                         <Sparkles className="size-3 text-[#73a922] shrink-0" />
-                        <span className="truncate">{tree.subtitle}</span>
+                        <span className="truncate">{tc(tree.subtitle)}</span>
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-stone-200/70 text-[11px] text-stone-500">
                       <span>
                         {maxGenCount > 0
-                          ? `${maxGenCount} ${maxGenCount === 1 ? 'Generation' : 'Generations'}`
-                          : 'Empty tree · Ready to build'}
+                          ? `${maxGenCount} ${maxGenCount === 1 ? t.generationSingular : t.generationPlural}`
+                          : t.emptyTreeReady}
                       </span>
 
                       <div className="flex items-center gap-2">
@@ -837,7 +844,8 @@ function FamilyTreeWorkspaceInner({
                             title="Visibility & Invite Collaborators"
                           >
                             <Share2 className="size-2.5" />
-                            Share{(tree.collaborators?.length || 0) > 0 ? ` (${tree.collaborators!.length})` : ''}
+                            {t.shareButton}
+                            {(tree.collaborators?.length || 0) > 0 ? ` (${tree.collaborators!.length})` : ''}
                           </button>
                         )}
                         {tree.sourceUrl && (
@@ -870,10 +878,10 @@ function FamilyTreeWorkspaceInner({
                 </span>
                 <div>
                   <div className="text-xs font-bold text-stone-800 group-hover:text-[#365314]">
-                    Add Family Tree Group
+                    {t.addFamilyTreeGroup}
                   </div>
                   <div className="text-[11px] text-stone-500 mt-0.5">
-                    Start your own family lineage
+                    {t.startYourOwnLineage}
                   </div>
                 </div>
               </button>
@@ -888,10 +896,10 @@ function FamilyTreeWorkspaceInner({
                 </span>
                 <div>
                   <div className="text-xs font-bold text-stone-800 group-hover:text-[#0b4a68]">
-                    Create Your Own Tree
+                    {t.createYourOwnTree}
                   </div>
                   <div className="text-[11px] text-stone-500 mt-0.5">
-                    Sign in with Email or Google
+                    {t.signInEmailOrGoogle}
                   </div>
                 </div>
               </button>
@@ -940,7 +948,7 @@ function FamilyTreeWorkspaceInner({
                 className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5"
               >
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 shrink-0 mr-1">
-                  Key Ancestors ({activeTree.name.split(' ')[0]}):
+                  {t.keyAncestors} ({activeTree.name.split(' ')[0]}):
                 </span>
                 {featuredAncestors.map((m) => (
                   <button
@@ -1025,29 +1033,29 @@ function FamilyTreeWorkspaceInner({
               <TabsList className="w-full sm:w-auto h-auto p-1 overflow-x-auto no-scrollbar flex-nowrap justify-start max-w-full">
                 <TabsTrigger value="tree" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Network className="size-4 text-[#73a922]" />
-                  Family Tree Chart
+                  {t.tabTreeChart}
                   <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
                     {activeTreeMembers.length}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="heritage" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Globe2 className="size-4 text-emerald-700" />
-                  Heritage &amp; APIs
+                  {t.tabHeritageApis}
                 </TabsTrigger>
                 <TabsTrigger value="directory" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Table2 className="size-4 text-amber-700" />
-                  Members Table
+                  {t.tabMembersTable}
                 </TabsTrigger>
                 <TabsTrigger value="gallery" className="py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm shrink-0">
                   <Camera className="size-4 text-rose-700" />
-                  Photo Archive
+                  {t.tabPhotoArchive}
                 </TabsTrigger>
               </TabsList>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Users className="size-3.5 text-[#73a922]" />
                 <span>
-                  Viewing <strong>{activeTree.name}</strong> · Click any card to inspect
+                  {t.viewingLabel} <strong>{tc(activeTree.name)}</strong> · {t.clickAnyCardToInspect}
                 </span>
               </div>
             </div>
@@ -1147,12 +1155,12 @@ function FamilyTreeWorkspaceInner({
           <span className="inline-flex items-center gap-2">
             <FamilyArchiveLogo className="size-5" />
             <span>
-              <strong>Family Archive</strong> · Multi-Family Genealogy &amp; Heritage Platform
+              <strong>Family Archive</strong> · {t.footerTagline}
             </span>
           </span>
           <span className="font-medium text-stone-600">
             Family Archive<sup className="text-[9px] ml-0.5">™</sup> · © {new Date().getFullYear()}{' '}
-            Family Archive. All rights reserved.
+            Family Archive. {t.allRightsReserved}
           </span>
         </div>
       </footer>

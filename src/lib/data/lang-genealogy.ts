@@ -28,10 +28,10 @@ export const DEFAULT_TREE_ID = 'lang-tampemawa';
 export const DEFAULT_FAMILY_TREE_GROUP: FamilyTreeGroupRecord = {
   id: DEFAULT_TREE_ID,
   name: 'Jacob Lang & Maria Tampemawa Family',
-  subtitle: 'Parenteel · Est. 1805 Menado, North Sulawesi',
-  region: 'Menado, North Sulawesi (N.O.I.)',
+  subtitle: 'Parenteel · Est. 1805 Manado, North Sulawesi, Indonesia',
+  region: 'Manado, North Sulawesi, Indonesia',
   description:
-    'Four generations of Indo-Minahasan lineage spanning Menado, Tondano, Kema, Java, the Netherlands, Canada, and the USA.',
+    'Four generations of Indo-Minahasan lineage spanning Manado, Tondano, Kema, Java, the Netherlands, Canada, and the USA.',
   sourceLabel: 'brouwertree.com/langgene.html',
   sourceUrl: 'https://www.brouwertree.com/langgene.html',
   accentColor: 'maritime',
@@ -65,7 +65,7 @@ export interface FamilyMemberRecord {
   occupation?: string;
   religion?: string;
   heritageTags: string[]; // e.g. ["Minahasan", "Dutch East Indies", "VOC-Era European"]
-  region: string; // e.g. "Menado, North Sulawesi (N.O.I.)"
+  region: string; // e.g. "Manado, North Sulawesi, Indonesia"
   photoUrl?: string;
   bio: string;
   spouses: SpouseRecord[];
@@ -131,15 +131,15 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     parentId: null,
     birthDate: 'ca. 1805',
     birthYear: 1805,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '1 December 1845',
     deathYear: 1845,
-    deathPlace: 'Menado, Celebes (N.O.I.)',
-    occupation: 'Early European Resident of Menado',
-    heritageTags: ['Dutch East Indies', 'European-Indisch', 'Menado Pioneer', 'Minahasa'],
-    region: 'Menado, North Sulawesi',
+    deathPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
+    occupation: 'Early European Resident of Manado',
+    heritageTags: ['Dutch East Indies', 'European-Indisch', 'Manado Pioneer', 'Minahasa'],
+    region: 'Manado, North Sulawesi, Indonesia',
     photoUrl: '/images/portraits/jacob-lang.jpg',
-    bio: 'Patriarch of the Lang–Tampemawa lineage of Menado, North Celebes (North Sulawesi). Born around 1805 in Menado, Jacob married Maria Tampemawa on 12 May 1842 in Menado, formally legitimizing their growing family in the colonial Civil Registry (Burgerlijke Stand). He passed away on 1 December 1845 at approximately age 40, leaving four surviving branches that spread across Minahasa, Java, Sumatra, the Netherlands, Canada, and the United States.',
+    bio: 'Patriarch of the Lang–Tampemawa lineage of Manado, North Sulawesi, Indonesia (North Sulawesi). Born around 1805 in Manado, Jacob married Maria Tampemawa on 12 May 1842 in Manado, formally legitimizing their growing family in the colonial Civil Registry (Burgerlijke Stand). He passed away on 1 December 1845 at approximately age 40, leaving four surviving branches that spread across Minahasa, Java, Sumatra, the Netherlands, Canada, and the United States.',
     spouses: [
       {
         id: 'sp-I-1',
@@ -147,7 +147,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Tampemawa',
         marriageOrder: 1,
         marriageDate: '12 May 1842',
-        marriagePlace: 'Menado, Celebes (N.O.I.)',
+        marriagePlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
         birthDate: 'ca. 1810',
         birthPlace: 'Minahasa, North Celebes',
         heritage: 'Minahasan (North Sulawesi)',
@@ -156,8 +156,8 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië, 1843, p. A 258 (Voltrokken huwelijken, Menado 12 Mei 1842)',
-      'Regerings-Almanak van Nederlandsch-Indië, 1847, p. A 387 (Aangiften van overlijden, Menado 1 Dec 1845)',
+      'Almanak van Nederlandsch-Indië, 1843, p. A 258 (Voltrokken huwelijken, Manado 12 Mei 1842)',
+      'Regerings-Almanak van Nederlandsch-Indië, 1847, p. A 387 (Aangiften van overlijden, Manado 1 Dec 1845)',
       'Undated Kuitert family article citing Elizabeth Lang, daughter of Jacob Lang and Maria Tampamawah'
     ],
     sourceUrl: 'https://www.brouwertree.com/langgene.html#1',
@@ -179,15 +179,15 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '16 September 1833',
     birthYear: 1833,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: 'after 1895',
     deathYear: 1896,
-    deathPlace: 'Kema, North Celebes',
-    occupation: 'Registered European Inhabitant of Menado & Kema',
-    heritageTags: ['Indo-Minahasan', 'Menado', 'Kema', 'Dutch East Indies'],
-    region: 'Kema & Menado, North Sulawesi',
+    deathPlace: 'Kema, North Sulawesi, Indonesia',
+    occupation: 'Registered European Inhabitant of Manado & Kema',
+    heritageTags: ['Indo-Minahasan', 'Manado', 'Kema', 'Dutch East Indies'],
+    region: 'Kema & Manado, North Sulawesi, Indonesia',
     photoUrl: '/images/portraits/hendrik-lang.jpg',
-    bio: 'Eldest son of Jacob Lang and Maria Tampemawa. Listed among the European residents of Menado (1863–1880) and later residing in the historic port town of Kema (1894–1895). Founder of the Kema–Menado branch through marriages with Gritjie Engelen and Maria Louise Uijtenbroeck.',
+    bio: 'Eldest son of Jacob Lang and Maria Tampemawa. Listed among the European residents of Manado (1863–1880) and later residing in the historic port town of Kema (1894–1895). Founder of the Kema–Manado branch through marriages with Gritjie Engelen and Maria Louise Uijtenbroeck.',
     spouses: [
       {
         id: 'sp-IIa-1',
@@ -195,7 +195,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Engelen',
         marriageOrder: 1,
         marriageDate: 'ca. 1858',
-        marriagePlace: 'Menado / Kema',
+        marriagePlace: 'Manado / Kema',
         birthDate: 'ca. 1835',
         deathDate: 'ca. 1875',
         heritage: 'Dutch-Indisch (Engelen family of Kema & Batavia)',
@@ -207,14 +207,14 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Uijtenbroeck',
         marriageOrder: 2,
         marriageDate: 'ca. 1875',
-        marriagePlace: 'Menado / Kema',
+        marriagePlace: 'Manado / Kema',
         birthDate: 'ca. 1845',
         heritage: 'Dutch-Indisch (Uitenbroek lineage from Nijmegen / Ternate VOC)',
         notes: 'Mother of Bernardus Jacob Lang (1878–1960).'
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië 1815–1942: Naamlijst der Europeesche Inwoners, Menado (1863–1880)',
+      'Almanak van Nederlandsch-Indië 1815–1942: Naamlijst der Europeesche Inwoners, Manado (1863–1880)',
       'Almanak van Nederlandsch-Indië 1895: Naamlijst der Europeesche Inwoners, Kema',
       'Family correspondence L.M. Engelen (October 2009)'
     ],
@@ -235,15 +235,15 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '1 February 1835',
     birthYear: 1835,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '17 April 1894',
     deathYear: 1894,
     deathPlace: 'Tondano, North Celebes',
     occupation: 'Sea Captain (Zeekapitein) & Merchant (Koopman)',
     heritageTags: ['Indo-Minahasan', 'Maritime Captain', 'Tondano', 'Global Diaspora'],
-    region: 'Menado & Tondano, North Sulawesi',
+    region: 'Manado & Tondano, North Sulawesi, Indonesia',
     photoUrl: '/images/portraits/joseph-lang.jpg',
-    bio: 'Second son of Jacob Lang and Maria Tampemawa. A prominent sea captain (zeekapitein) and merchant (koopman) in Menado and Tondano. Married Amelia Juliane Weintre in 1865; together they raised a large family of 8 sons and 2+ daughters whose descendants became State Railway architects on Java and later settled in the Netherlands, Canada, and the USA.',
+    bio: 'Second son of Jacob Lang and Maria Tampemawa. A prominent sea captain (zeekapitein) and merchant (koopman) in Manado and Tondano. Married Amelia Juliane Weintre in 1865; together they raised a large family of 8 sons and 2+ daughters whose descendants became State Railway architects on Java and later settled in the Netherlands, Canada, and the USA.',
     spouses: [
       {
         id: 'sp-IIb-1',
@@ -251,18 +251,18 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Weintre',
         marriageOrder: 1,
         marriageDate: '6 March 1865',
-        marriagePlace: 'Menado, Celebes (N.O.I.)',
+        marriagePlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
         birthDate: '22 May 1846',
-        birthPlace: 'Menado, Celebes',
+        birthPlace: 'Manado, North Sulawesi, Indonesia',
         deathDate: '25 April 1912',
-        deathPlace: 'Blitar, East Java',
-        heritage: 'English-Indisch / Ternate-Menado Weintre lineage',
+        deathPlace: 'Blitar, East Java, Indonesia',
+        heritage: 'English-Indisch / Ternate-Manado Weintre lineage',
         photoUrl: '/images/portraits/amelia-weintre.jpg',
         notes: 'According to great-grandson Ben Lang, Amelia held English nationality. Buried at Blitar Cemetery, East Java, plot nr. 287.'
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië, 1866, p. 22 (Marriage Menado, 6 March 1865)',
+      'Almanak van Nederlandsch-Indië, 1866, p. 22 (Marriage Manado, 6 March 1865)',
       'Almanak van Nederlandsch-Indië, 1895, p. 446 (Death Tondano, 17 April 1894)',
       'Gravestone Blitar Cemetery, East Java, nr. 287 (A.J. Lang-Weintre)'
     ],
@@ -283,13 +283,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '31 January 1836',
     birthYear: 1836,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '8 May 1872',
     deathYear: 1872,
-    deathPlace: 'Menado, Celebes (N.O.I.)',
+    deathPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     occupation: 'Wife of District Chief (Majoor) of Tombariri',
     heritageTags: ['Indo-Minahasan', 'Tombariri Nobility', 'Parera-Mamahit-Waworuntu'],
-    region: 'Tombariri & Menado, North Sulawesi',
+    region: 'Tombariri & Manado, North Sulawesi, Indonesia',
     photoUrl: '/images/portraits/carolina-lang.jpg',
     bio: 'Eldest daughter of Jacob Lang and Maria Tampemawa. Married Johannis Marcus Parera, Roman Catholic District Chief (Majoor) of the IVth District Tombariri in Minahasa. Though she passed away young at age 36, her daughters married into the prominent Minahasan Mamahit, Waworuntu (Waworoentoe), and Warokka clans.',
     spouses: [
@@ -299,10 +299,10 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Parera',
         marriageOrder: 1,
         marriageDate: '29 March 1865',
-        marriagePlace: 'Menado, Celebes (N.O.I.)',
+        marriagePlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
         birthDate: '15 October 1823',
         deathDate: '14 August 1898',
-        deathPlace: 'Menado',
+        deathPlace: 'Manado',
         occupation: 'District Chief (Majoor) of IVth District Tombariri',
         heritage: 'Moluccan-Portuguese / Minahasan (son of Johan Frederik Parera & Adriana Andries)',
         photoUrl: '/images/portraits/johannis-parera.jpg',
@@ -310,7 +310,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië, 1866, p. 22 (Marriage Menado, 29 March 1865)',
+      'Almanak van Nederlandsch-Indië, 1866, p. 22 (Marriage Manado, 29 March 1865)',
       'Almanak van Nederlandsch-Indië, 1899, p. 472 (Death Johannis Marcus Parera, 14 Aug 1898)'
     ],
     sourceUrl: 'https://www.brouwertree.com/langgene.html#2c',
@@ -330,15 +330,15 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '24 December 1838',
     birthYear: 1838,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '12 December 1912',
     deathYear: 1912,
-    deathPlace: 'Menado, Celebes (N.O.I.)',
+    deathPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     occupation: 'Matriarch & Plantation Family Co-Founder (Mukupa)',
-    heritageTags: ['Indo-Minahasan', 'Groningen-Menado Bridge', 'Waterstaat & Spoorwegen'],
-    region: 'Menado, Gorontalo, Bondowoso & Groningen',
+    heritageTags: ['Indo-Minahasan', 'Groningen-Manado Bridge', 'Waterstaat & Spoorwegen'],
+    region: 'Manado, Gorontalo, Bondowoso & Groningen',
     photoUrl: '/images/portraits/elisabeth-lang.jpg',
-    bio: 'Daughter of Jacob Lang and Maria Tampemawa. Married Dutch master carpenter and 1st Class Public Works (Waterstaat) Overseer Jan Wolters Kuitert from Groningen. Together they lived across Menado, Gorontalo, Bondowoso, Makassar, and Madiun, traveled to the Netherlands in 1881–1882 with their five children, and owned the 27-bouw Mukupa nutmeg plantation near Menado.',
+    bio: 'Daughter of Jacob Lang and Maria Tampemawa. Married Dutch master carpenter and 1st Class Public Works (Waterstaat) Overseer Jan Wolters Kuitert from Groningen. Together they lived across Manado, Gorontalo, Bondowoso, Makassar, and Madiun, traveled to the Netherlands in 1881–1882 with their five children, and owned the 27-bouw Mukupa nutmeg plantation near Manado.',
     spouses: [
       {
         id: 'sp-IId-1',
@@ -346,22 +346,22 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Kuitert',
         marriageOrder: 1,
         marriageDate: '23 December 1863',
-        marriagePlace: 'Menado, Celebes (N.O.I.)',
+        marriagePlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
         birthDate: '19 July 1821',
-        birthPlace: 'Groningen, Netherlands',
+        birthPlace: 'Groningen, Groningen, Netherlands',
         deathDate: '21 March 1896',
-        deathPlace: 'Menado, buried Oude Kerkhof voor Europeanen nr. 124',
+        deathPlace: 'Manado, buried Oude Kerkhof voor Europeanen nr. 124',
         occupation: 'Master Carpenter, Fire Chief (1861), 1st Class Waterstaat Overseer & Nutmeg Planter (Mukupa)',
         heritage: 'Dutch (Groningen; son of silversmith Cornelius Berents Kuitert & Jacoba Wolters)',
         photoUrl: '/images/portraits/jan-wolters-kuitert.jpg',
-        notes: 'Widower of Hinderkien de Jonge (d. 1857); sailed from Groningen to Menado on 11 August 1857 with his children Frouke and Cornelius.'
+        notes: 'Widower of Hinderkien de Jonge (d. 1857); sailed from Groningen to Manado on 11 August 1857 with his children Frouke and Cornelius.'
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië, 1865, p. 21 (Marriage Menado, 23 Dec 1863)',
+      'Almanak van Nederlandsch-Indië, 1865, p. 21 (Marriage Manado, 23 Dec 1863)',
       'Almanak van Nederlandsch-Indië, 1896, p. 377 (Particuliere Landerijen: Mukupa nutmeg estate, 27 bouws)',
       'GenLias Groningen Birth/Marriage/Death Records (1821–1857)',
-      'Oude Kerkhof voor Europeanen Menado, Gravestone nr. 124'
+      'Oude Kerkhof voor Europeanen Manado, Gravestone nr. 124'
     ],
     sourceUrl: 'https://www.brouwertree.com/langgene.html#2d',
     isFeatured: true
@@ -380,13 +380,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '12 November 1840',
     birthYear: 1840,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '3 April 1842',
     deathYear: 1842,
-    deathPlace: 'Menado, Celebes (N.O.I.)',
-    heritageTags: ['Indo-Minahasan', 'Menado'],
-    region: 'Menado, North Sulawesi',
-    bio: 'Fifth child of Jacob Lang and Maria Tampemawa; passed away in infancy in Menado at age 1 year and 4 months.',
+    deathPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
+    heritageTags: ['Indo-Minahasan', 'Manado'],
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Fifth child of Jacob Lang and Maria Tampemawa; passed away in infancy in Manado at age 1 year and 4 months.',
     spouses: [],
     sources: ['BrouwerTree Parenteel Jacob Lang & Maria Tampemawa'],
     sourceUrl: 'https://www.brouwertree.com/langgene.html#1'
@@ -405,12 +405,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '13 January 1843',
     birthYear: 1843,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '23 February 1846',
     deathYear: 1846,
-    deathPlace: 'Menado, Celebes (N.O.I.)',
-    heritageTags: ['Indo-Minahasan', 'Menado'],
-    region: 'Menado, North Sulawesi',
+    deathPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
+    heritageTags: ['Indo-Minahasan', 'Manado'],
+    region: 'Manado, North Sulawesi, Indonesia',
     bio: 'Sixth child of Jacob Lang and Maria Tampemawa; passed away in early childhood at age 3, just two months after his father.',
     spouses: [],
     sources: ['Regerings-Almanak van Nederlandsch-Indië, 1847, p. A 387'],
@@ -430,13 +430,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Tampemawa',
     birthDate: '22 November 1844',
     birthYear: 1844,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '23 March 1846',
     deathYear: 1846,
-    deathPlace: 'Menado, Celebes (N.O.I.)',
-    heritageTags: ['Indo-Minahasan', 'Menado'],
-    region: 'Menado, North Sulawesi',
-    bio: 'Youngest child of Jacob Lang and Maria Tampemawa; passed away in infancy in Menado at age 1 year and 4 months.',
+    deathPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
+    heritageTags: ['Indo-Minahasan', 'Manado'],
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Youngest child of Jacob Lang and Maria Tampemawa; passed away in infancy in Manado at age 1 year and 4 months.',
     spouses: [],
     sources: ['Regerings-Almanak van Nederlandsch-Indië, 1847, p. A 387'],
     sourceUrl: 'https://www.brouwertree.com/langgene.html#1'
@@ -457,15 +457,15 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Gritjie Engelen',
     birthDate: '28 December 1859',
     birthYear: 1859,
-    birthPlace: 'Kema, North Celebes',
+    birthPlace: 'Kema, North Sulawesi, Indonesia',
     deathDate: '15 December 1906',
     deathYear: 1906,
-    deathPlace: 'Menado, North Celebes',
-    burialPlace: 'Het Oude Kerkhof voor Europeanen, Menado (nr. 43)',
+    deathPlace: 'Manado, North Sulawesi, Indonesia',
+    burialPlace: 'Het Oude Kerkhof voor Europeanen, Manado (nr. 43)',
     occupation: 'Landraad Bailiff (Gorontalo), Nutmeg Planter (Tateli), Controleur Clerk',
     heritageTags: ['Indo-Minahasan', 'Kema', 'Gorontalo', 'Tateli Estate'],
-    region: 'Kema, Gorontalo & Menado',
-    bio: 'Eldest son of Hendrik Lang and Gritjie Engelen. Served as Extraordinary Bailiff at the Gorontalo District Court (1883–1885), owned the 26-bouw Tateli nutmeg estate near Menado (1895), and worked as Clerk to the Controleur at Palehleh, Menado (1900).',
+    region: 'Kema, Gorontalo & Manado',
+    bio: 'Eldest son of Hendrik Lang and Gritjie Engelen. Served as Extraordinary Bailiff at the Gorontalo District Court (1883–1885), owned the 26-bouw Tateli nutmeg estate near Manado (1895), and worked as Clerk to the Controleur at Palehleh, Manado (1900).',
     spouses: [
       {
         id: 'sp-IIIa-1',
@@ -473,7 +473,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Laseduw',
         marriageOrder: 1,
         marriageDate: '1885',
-        marriagePlace: 'Kema, North Celebes',
+        marriagePlace: 'Kema, North Sulawesi, Indonesia',
         heritage: 'Minahasan'
       },
       {
@@ -482,9 +482,9 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'van Slooten',
         marriageOrder: 2,
         marriageDate: '8 June 1898',
-        marriagePlace: 'Menado',
+        marriagePlace: 'Manado',
         birthDate: '17 December 1871',
-        birthPlace: 'Menado',
+        birthPlace: 'Manado',
         deathDate: '16 September 1943',
         heritage: 'Dutch-Indisch'
       }
@@ -492,7 +492,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     sources: [
       'Almanak van Nederlandsch-Indië 1884–1885, p. 99 (Landraad te Gorontalo)',
       'Almanak van Nederlandsch-Indië 1896, p. 377 (Tateli nutmeg plantation)',
-      'Oude Kerkhof voor Europeanen Menado, nr. 43'
+      'Oude Kerkhof voor Europeanen Manado, nr. 43'
     ],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3a'
   },
@@ -511,15 +511,15 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Gritjie Engelen',
     birthDate: '30 May 1862',
     birthYear: 1862,
-    birthPlace: 'Kema, North Celebes',
+    birthPlace: 'Kema, North Sulawesi, Indonesia',
     deathDate: '26 March 1909',
     deathYear: 1909,
-    deathPlace: 'Kema, North Celebes',
-    burialPlace: 'Menado (family tomb with Josephina Davis)',
-    occupation: 'Bailiff at Kema (1885) & Clerk at Menado Residency Office',
+    deathPlace: 'Kema, North Sulawesi, Indonesia',
+    burialPlace: 'Manado (family tomb with Josephina Davis)',
+    occupation: 'Bailiff at Kema (1885) & Clerk at Manado Residency Office',
     heritageTags: ['Indo-Minahasan', 'Kema', 'English-Dutch Connection'],
-    region: 'Kema & Menado, North Sulawesi',
-    bio: 'Second son of Hendrik Lang and Gritjie Engelen. Served as civil bailiff in Kema and clerk at the Residentiekantoor in Menado. Married Josephina Elisabeth Davis (daughter of William George Davis and Emilia Josephina Waersegers).',
+    region: 'Kema & Manado, North Sulawesi, Indonesia',
+    bio: 'Second son of Hendrik Lang and Gritjie Engelen. Served as civil bailiff in Kema and clerk at the Residentiekantoor in Manado. Married Josephina Elisabeth Davis (daughter of William George Davis and Emilia Josephina Waersegers).',
     spouses: [
       {
         id: 'sp-IIIb-1',
@@ -531,13 +531,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         birthDate: '10 April 1870',
         birthPlace: 'Kema',
         deathDate: '23 December 1935',
-        deathPlace: 'Menado',
+        deathPlace: 'Manado',
         heritage: 'British-Dutch Indisch'
       }
     ],
     sources: [
       'Almanak van Nederlandsch-Indië 1888, p. 247 (Marriage Kema 1886)',
-      'Almanak van Nederlandsch-Indië 1901, p. 357 (Klerk Residentiekantoor Menado)'
+      'Almanak van Nederlandsch-Indië 1901, p. 357 (Klerk Residentiekantoor Manado)'
     ],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3b'
   },
@@ -555,9 +555,9 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Gritjie Engelen',
     birthDate: 'ca. 1865',
     birthYear: 1865,
-    birthPlace: 'Kema / Menado',
+    birthPlace: 'Kema / Manado',
     heritageTags: ['Indo-Minahasan', 'Winter Family', 'Kema'],
-    region: 'Kema & Menado, North Sulawesi',
+    region: 'Kema & Manado, North Sulawesi, Indonesia',
     bio: 'Daughter of Hendrik Lang and Gritjie Engelen. Married Johan Carel (Karel) Winter of Kema; their children connected the family to the van Slooten, Lefrandt, and Bendsneijder families.',
     spouses: [
       {
@@ -569,11 +569,11 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         birthDate: '24 November 1855',
         birthPlace: 'Kema',
         deathDate: '5 February 1934',
-        deathPlace: 'Menado',
+        deathPlace: 'Manado',
         heritage: 'Dutch-Indisch (Winter family of Kema)'
       }
     ],
-    sources: ['Burgerlijke Stand Menado 1934 nr. 1', 'Parenteel Winter'],
+    sources: ['Burgerlijke Stand Manado 1934 nr. 1', 'Parenteel Winter'],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3c'
   },
   {
@@ -590,9 +590,9 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Gritjie Engelen',
     birthDate: 'ca. 1870',
     birthYear: 1870,
-    birthPlace: 'Menado (probable)',
-    heritageTags: ['Indo-Minahasan', 'Menado'],
-    region: 'Menado, North Sulawesi',
+    birthPlace: 'Manado (probable)',
+    heritageTags: ['Indo-Minahasan', 'Manado'],
+    region: 'Manado, North Sulawesi, Indonesia',
     bio: 'Daughter of Hendrik Lang and Gritjie Engelen. Married Alexander; their descendants carried the combined Alexander Lang surname in Manado and Kema.',
     spouses: [
       {
@@ -601,7 +601,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Alexander',
         marriageOrder: 1,
         birthDate: 'ca. 1870',
-        birthPlace: 'Menado (probable)'
+        birthPlace: 'Manado (probable)'
       }
     ],
     sources: ['BrouwerTree Lang Parenteel Generation III-d'],
@@ -621,12 +621,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Louise Uijtenbroeck',
     birthDate: '26 August 1878',
     birthYear: 1878,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '3 February 1960',
     deathYear: 1960,
     deathPlace: 'Minahasa, Indonesia',
     heritageTags: ['Indo-Minahasan', 'Uijtenbroeck Line', 'Palendeng', 'Luasunaung'],
-    region: 'Menado, North Sulawesi',
+    region: 'Manado, North Sulawesi, Indonesia',
     bio: 'Son of Hendrik Lang and his second wife Maria Louise Uijtenbroeck. Lived 81 years across the colonial transition into Indonesian independence, founding a large Minahasan branch through Barina Palendeng and Maria Luasunaung.',
     spouses: [
       {
@@ -648,7 +648,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië 1896–1898 (Naamlijst Menado)',
+      'Almanak van Nederlandsch-Indië 1896–1898 (Naamlijst Manado)',
       'Family photographic archive of Sergey Lang (2013)'
     ],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3e'
@@ -669,11 +669,11 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Amelia Juliane Weintre',
     birthDate: '28 January 1866',
     birthYear: 1866,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
-    occupation: 'Administrator at Wanata-Menado (1901)',
-    heritageTags: ['Indo-Minahasan', 'Wanata-Menado', 'Weintre Line'],
-    region: 'Wanata-Menado, North Sulawesi',
-    bio: 'Eldest son of Captain Joseph Lang and Amelia Juliane Weintre. Worked as estate administrator in Wanata-Menado and fathered eleven children in North Sulawesi.',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
+    occupation: 'Administrator at Wanata-Manado (1901)',
+    heritageTags: ['Indo-Minahasan', 'Wanata-Manado', 'Weintre Line'],
+    region: 'Wanata-Manado, North Sulawesi, Indonesia',
+    bio: 'Eldest son of Captain Joseph Lang and Amelia Juliane Weintre. Worked as estate administrator in Wanata-Manado and fathered eleven children in North Sulawesi.',
     spouses: [
       {
         id: 'sp-IIIf-1',
@@ -691,7 +691,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         heritage: 'Minahasan / Indonesian'
       }
     ],
-    sources: ['Almanak van Nederlandsch-Indië, 1901, p. 357 (Administrateur, Wanata-Menado)'],
+    sources: ['Almanak van Nederlandsch-Indië, 1901, p. 357 (Administrateur, Wanata-Manado)'],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3f'
   },
   {
@@ -711,10 +711,10 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     birthPlace: 'Tondano, Celebes (N.O.I.)',
     deathDate: '17 June 1931',
     deathYear: 1931,
-    deathPlace: 'Menado, Celebes',
+    deathPlace: 'Manado, North Sulawesi, Indonesia',
     occupation: 'Private Citizen (Particulier) in Tondano & Amoerang',
     heritageTags: ['Indo-Minahasan', 'Tondano', 'Amoerang', 'Mogot Clan'],
-    region: 'Tondano, Amoerang & Menado',
+    region: 'Tondano, Amoerang & Manado',
     bio: 'Second son of Joseph Lang and Amelia Juliane Weintre. Lived in Tondano and Amoerang; married Constans (Tatie) Mogot of Remboken in 1907. Their descendants include KNIL soldiers and PTT civil servants in Arnhem, Netherlands.',
     spouses: [
       {
@@ -754,10 +754,10 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     birthPlace: 'Tondano, Celebes (N.O.I.)',
     deathDate: '8 February 1909',
     deathYear: 1909,
-    deathPlace: 'Menado, Celebes',
-    burialPlace: 'Het Oude Kerkhof voor Europeanen, Menado',
+    deathPlace: 'Manado, North Sulawesi, Indonesia',
+    burialPlace: 'Het Oude Kerkhof voor Europeanen, Manado',
     heritageTags: ['Indo-Minahasan', 'Tondano', 'Weijdemuller Mining Line'],
-    region: 'Tondano & Menado',
+    region: 'Tondano & Manado',
     bio: 'Eldest daughter of Joseph Lang and Amelia Juliane Weintre. Married Petrus Cornelis Jacobus Weijdemuller, supervisor at the Totok gold mining company in Tondano (son of Joost Weijdemuller and Wilhelmina Waworuntu).',
     spouses: [
       {
@@ -770,7 +770,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         birthDate: '27 April 1866',
         birthPlace: 'Tondano',
         deathDate: '10 May 1939',
-        deathPlace: 'Menado',
+        deathPlace: 'Manado',
         occupation: 'Mining Supervisor, Mijnbouw Mij "Totok" (1898)',
         heritage: 'Dutch-Minahasan (Weijdemuller–Waworuntu)'
       }
@@ -849,7 +849,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         marriageDate: '9 July 1902',
         marriagePlace: 'Berbek (Ngandjoek), East Java',
         birthDate: '7 May 1885',
-        birthPlace: 'Probolinggo, East Java',
+        birthPlace: 'Probolinggo, East Java, Indonesia',
         deathDate: '26 June 1967',
         deathPlace: "'s-Gravenhage, Netherlands",
         heritage: 'Dutch-French Indisch (Willemsen–Lemonnier)'
@@ -877,14 +877,14 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Amelia Juliane Weintre',
     birthDate: '5 July 1881',
     birthYear: 1881,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '27 January 1927',
     deathYear: 1927,
     deathPlace: 'Bandoeng, West Java',
     burialPlace: 'Oude Begraafplaats Bandoeng, Class 1, nr. 930',
     occupation: 'Architect, Staatsspoorwegen (Batavia & Bandung)',
     heritageTags: ['Indo-European', 'Staatsspoorwegen', 'Batavia-Amsterdam Voyages'],
-    region: 'Menado, Batavia & Bandung',
+    region: 'Manado, Batavia & Bandung',
     bio: 'Son of Joseph Lang and Amelia Juliane Weintre. Served as architect for the State Railways in Batavia. Traveled to Amsterdam with his wife and four children aboard the SS Koningin der Nederlanden (1923) and returned via Rotterdam aboard the SS Insulinde (1925).',
     spouses: [
       {
@@ -895,7 +895,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         marriageDate: '11 October 1905',
         marriagePlace: 'Soerabaja, East Java',
         birthDate: '17 December 1881',
-        birthPlace: 'Probolinggo, East Java',
+        birthPlace: 'Probolinggo, East Java, Indonesia',
         deathDate: '8 September 1963',
         deathPlace: "'s-Gravenhage, Netherlands",
         heritage: 'Dutch-Indisch'
@@ -997,12 +997,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Carolina Lang',
     birthDate: '24 February 1867',
     birthYear: 1867,
-    birthPlace: 'Menado / Tombariri, Minahasa',
+    birthPlace: 'Manado / Tombariri, Minahasa',
     deathDate: '3 February 1941',
     deathYear: 1941,
     deathPlace: 'North Sulawesi',
     heritageTags: ['Minahasan', 'Parera-Mamahit Alliance', 'Mandar Royal Link'],
-    region: 'Menado & Minahasa',
+    region: 'Manado & Minahasa',
     bio: 'Eldest daughter of Majoor Johannis Marcus Parera and Carolina Lang. Married Helebrand Ferdinand Mamahit; together they had ten children who married into prominent Minahasan and Sulawesi families including Poluan, Paulus, Supit, Tumbuan, Suwawa, Assa, and the royal house of Mandar / Majene.',
     spouses: [
       {
@@ -1033,10 +1033,10 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Carolina Lang',
     birthDate: 'ca. 1868',
     birthYear: 1868,
-    birthPlace: 'Menado / Tombariri, Minahasa',
+    birthPlace: 'Manado / Tombariri, Minahasa',
     heritageTags: ['Minahasan', 'Waworuntu Dynasty', 'Amoerang'],
-    region: 'Menado & Amoerang, Minahasa',
-    bio: 'Daughter of Johannis Marcus Parera and Carolina Lang. Married Albert Lasoet Waworoentoe (Waworuntu) in Menado in 1885, uniting the Lang–Parera lineage with one of Minahasa’s most influential families.',
+    region: 'Manado & Amoerang, Minahasa',
+    bio: 'Daughter of Johannis Marcus Parera and Carolina Lang. Married Albert Lasoet Waworoentoe (Waworuntu) in Manado in 1885, uniting the Lang–Parera lineage with one of Minahasa’s most influential families.',
     spouses: [
       {
         id: 'sp-IIIm-1',
@@ -1044,12 +1044,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Waworuntu',
         marriageOrder: 1,
         marriageDate: '26 September 1885',
-        marriagePlace: 'Menado',
+        marriagePlace: 'Manado',
         birthDate: 'ca. 1865',
         heritage: 'Minahasan (Waworuntu clan)'
       }
     ],
-    sources: ['Almanak van Nederlandsch-Indië 1887, p. 241 (Marriage Menado 26 Sept 1885)'],
+    sources: ['Almanak van Nederlandsch-Indië 1887, p. 241 (Marriage Manado 26 Sept 1885)'],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3m'
   },
   {
@@ -1066,10 +1066,10 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Carolina Lang',
     birthDate: 'ca. 1871',
     birthYear: 1871,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     heritageTags: ['Minahasan', 'Warokka Clan'],
-    region: 'Menado, North Sulawesi',
-    bio: 'Daughter of Johannis Marcus Parera and Carolina Lang; married Lambertus Alanus Warokka in Menado on 16 April 1894.',
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Daughter of Johannis Marcus Parera and Carolina Lang; married Lambertus Alanus Warokka in Manado on 16 April 1894.',
     spouses: [
       {
         id: 'sp-IIIm2-1',
@@ -1077,7 +1077,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Warokka',
         marriageOrder: 1,
         marriageDate: '16 April 1894',
-        marriagePlace: 'Menado',
+        marriagePlace: 'Manado',
         heritage: 'Minahasan (Warokka clan)'
       }
     ],
@@ -1100,14 +1100,14 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Elisabeth Lang',
     birthDate: '6 March 1865',
     birthYear: 1865,
-    birthPlace: 'Menado, Celebes (N.O.I.)',
+    birthPlace: 'Manado, North Sulawesi, Indonesia (N.O.I.)',
     deathDate: '11 October 1950',
     deathYear: 1950,
     deathPlace: 'Mokupa, Minahasa',
-    occupation: 'Railway Sub-Clerk 3rd Cl. (1884) & Waterstaat Overseer (Menado/Amoerang)',
+    occupation: 'Railway Sub-Clerk 3rd Cl. (1884) & Waterstaat Overseer (Manado/Amoerang)',
     heritageTags: ['Dutch-Minahasan', 'Groningen Roots', 'Mokupa Estate', 'Ransun Clan'],
-    region: 'Menado, Amoerang & Mokupa',
-    bio: 'Eldest son of Jan Wolters Kuitert and Elisabeth Lang. Worked in the State Railways Western Lines transport division and as Public Works (Waterstaat) overseer in Menado and Amoerang. Married Hermina Ransun of Koha and lived to age 85 at Mokupa.',
+    region: 'Manado, Amoerang & Mokupa',
+    bio: 'Eldest son of Jan Wolters Kuitert and Elisabeth Lang. Worked in the State Railways Western Lines transport division and as Public Works (Waterstaat) overseer in Manado and Amoerang. Married Hermina Ransun of Koha and lived to age 85 at Mokupa.',
     spouses: [
       {
         id: 'sp-IIIo-1',
@@ -1200,7 +1200,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Duivenbode',
         marriageOrder: 1,
         birthDate: 'ca. 1885',
-        heritage: 'Ternate-Menado (van Renesse van Duivenbode lineage)'
+        heritage: 'Ternate-Manado (van Renesse van Duivenbode lineage)'
       }
     ],
     sources: ['Almanak van Nederlandsch-Indië 1871, p. 246a & 1891–1900 Onderwijs Ranglijst'],
@@ -1220,11 +1220,11 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Elisabeth Lang',
     birthDate: '26 June 1872',
     birthYear: 1872,
-    birthPlace: 'Menado, North Celebes',
-    occupation: '3rd Class Overseer, Burgerlijke Openbare Werken (B.O.W.), Menado & Gorontalo',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
+    occupation: '3rd Class Overseer, Burgerlijke Openbare Werken (B.O.W.), Manado & Gorontalo',
     heritageTags: ['Dutch-Minahasan', 'B.O.W. Engineer', 'Kalenkongan Clan'],
-    region: 'Menado & Gorontalo',
-    bio: 'Son of Jan Wolters Kuitert and Elisabeth Lang. Appointed 3rd Class Public Works Overseer (B.O.W.) in Menado and Gorontalo (1898–1900). Married Charlotta Antonetta Kalenkongan in Menado.',
+    region: 'Manado & Gorontalo',
+    bio: 'Son of Jan Wolters Kuitert and Elisabeth Lang. Appointed 3rd Class Public Works Overseer (B.O.W.) in Manado and Gorontalo (1898–1900). Married Charlotta Antonetta Kalenkongan in Manado.',
     spouses: [
       {
         id: 'sp-IIIq-1',
@@ -1232,12 +1232,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'Kalenkongan',
         marriageOrder: 1,
         marriageDate: '6 August 1892',
-        marriagePlace: 'Menado',
+        marriagePlace: 'Manado',
         heritage: 'Minahasan (Kalenkongan clan)'
       }
     ],
     sources: [
-      'Almanak van Nederlandsch-Indië 1873, p. 254 (Birth Menado)',
+      'Almanak van Nederlandsch-Indië 1873, p. 254 (Birth Manado)',
       'Almanak van Nederlandsch-Indië 1893, p. 302 (Marriage)',
       'Almanak van Nederlandsch-Indië 1900, p. 414 (B.O.W. Ranglijst)'
     ],
@@ -1285,7 +1285,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Josephina Elisabeth Davis',
     birthDate: '25 June 1887',
     birthYear: 1887,
-    birthPlace: 'Kema, North Celebes',
+    birthPlace: 'Kema, North Sulawesi, Indonesia',
     deathDate: '9 July 1944',
     deathYear: 1944,
     deathPlace: 'Mentok Internment Camp, Bangka',
@@ -1316,13 +1316,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Josephina Elisabeth Davis',
     birthDate: '21 September 1891',
     birthYear: 1891,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '4 May 1967',
     deathYear: 1967,
     deathPlace: "'s-Gravenhage, Netherlands",
     occupation: '1st Class Technical Official PTT Bandung · Knight of the Order of Orange-Nassau (1948)',
     heritageTags: ['Indo-Minahasan', 'Order of Orange-Nassau', 'Bandung & The Hague'],
-    region: 'Menado, Bandung & The Hague',
+    region: 'Manado, Bandung & The Hague',
     bio: 'Son of Willem Albertus Lang and Josephina Elisabeth Davis. Distinguished telecommunications official (PTT) in Bandung who was knighted as Ridder in de Orde van Oranje-Nassau on 23 August 1948 before retiring to The Hague.',
     spouses: [
       {
@@ -1365,13 +1365,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Josephina Elisabeth Davis',
     birthDate: '4 September 1904',
     birthYear: 1904,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '3 July 2004',
     deathYear: 2004,
     deathPlace: "'s-Gravenhage, Netherlands",
     heritageTags: ['Indo-Minahasan', 'Centenarian Generation', 'The Hague Diaspora'],
-    region: 'Menado & The Hague',
-    bio: 'Youngest daughter of Willem Albertus Lang and Josephina Elisabeth Davis. Married architect Jan Pereira by proxy ("met de handschoen") in 1930; lived nearly a full century (99 years and 10 months) spanning colonial Menado to 21st-century The Hague.',
+    region: 'Manado & The Hague',
+    bio: 'Youngest daughter of Willem Albertus Lang and Josephina Elisabeth Davis. Married architect Jan Pereira by proxy ("met de handschoen") in 1930; lived nearly a full century (99 years and 10 months) spanning colonial Manado to 21st-century The Hague.',
     spouses: [
       {
         id: 'sp-IVd-1',
@@ -1403,7 +1403,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Barina Palendeng',
     birthDate: '7 October 1905',
     birthYear: 1905,
-    birthPlace: 'Menado, North Sulawesi',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '5 June 1971',
     deathYear: 1971,
     heritageTags: ['Minahasan-Indisch', 'Gimon Clan'],
@@ -1443,7 +1443,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     burialPlace: 'Nederlands Ereveld Ancol, Jakarta',
     occupation: 'Architect & Building Contractor (Malang)',
     heritageTags: ['Indo-European', 'Malang Architect', 'WWII War Victim'],
-    region: 'Klakah & Malang, East Java',
+    region: 'Klakah & Malang, East Java, Indonesia',
     bio: 'Eldest son of Maurits Joachim Lang and Caroline Jeanette Willemsen. Architect and contractor in Malang; perished in 1943 during WWII and was later reburied with honors at the Dutch Field of Honor Ancol in Jakarta.',
     spouses: [
       {
@@ -1481,7 +1481,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     deathYear: 2000,
     deathPlace: 'Calgary, Alberta, Canada',
     heritageTags: ['Indo-European', 'Canadian Diaspora', 'Madiun to Calgary'],
-    region: 'Madiun, Kediri & Calgary, Canada',
+    region: 'Madiun, Kediri & Calgary, Alberta, Canada',
     bio: 'Daughter of Maurits Joachim Lang and Caroline Jeanette Willemsen. Represented the North American diaspora of the Lang–Tampemawa lineage, living to age 92 in Calgary, Alberta, Canada.',
     spouses: [
       {
@@ -1600,7 +1600,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Maria Adriana Parera',
     birthDate: 'ca. 1889',
     birthYear: 1889,
-    birthPlace: 'Menado, North Sulawesi',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     heritageTags: ['Minahasan', 'Mamahit-Poluan Clan'],
     region: 'Minahasa, North Sulawesi',
     bio: 'Eldest son of Helebrand Ferdinand Mamahit and Maria Adriana Parera, carrying forward Carolina Lang’s Minahasan line in North Sulawesi.',
@@ -1664,12 +1664,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Hermina Ransun',
     birthDate: '5 October 1891',
     birthYear: 1891,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '1970',
     deathYear: 1970,
     heritageTags: ['Dutch-Minahasan', 'Duivenbode Lineage'],
-    region: 'Menado, North Sulawesi',
-    bio: 'Eldest daughter of Jan Jozef Kuitert and Hermina Ransun. Married Rudolph (Dolf) van Renesse van Duivenbode, uniting the Kuitert–Lang branch with the historic Ternate–Menado Duivenbode family.',
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Eldest daughter of Jan Jozef Kuitert and Hermina Ransun. Married Rudolph (Dolf) van Renesse van Duivenbode, uniting the Kuitert–Lang branch with the historic Ternate–Manado Duivenbode family.',
     spouses: [
       {
         id: 'sp-IVav-1',
@@ -1677,7 +1677,7 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
         surname: 'van Renesse van Duivenbode',
         marriageOrder: 1,
         birthDate: 'ca. 1890',
-        heritage: 'Dutch-Ternate-Menado Aristocratic Merchant Family'
+        heritage: 'Dutch-Ternate-Manado Aristocratic Merchant Family'
       }
     ],
     sources: ['BrouwerTree Lang Parenteel IV-av'],
@@ -1697,12 +1697,12 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Hermina Ransun',
     birthDate: '4 April 1893',
     birthYear: 1893,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '1 June 1967',
     deathYear: 1967,
     deathPlace: 'Amsterdam, Netherlands',
     heritageTags: ['Dutch-Minahasan', 'Mononutu Clan', 'Amsterdam Diaspora'],
-    region: 'Menado & Amsterdam',
+    region: 'Manado & Amsterdam',
     bio: 'Son of Jan Jozef Kuitert and Hermina Ransun. Married Sophia Maria Mononutu of Air Madidi (daughter of Arnold Mononutu and Charlotte Wilson) and later lived in Amsterdam.',
     spouses: [
       {
@@ -1734,13 +1734,13 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     motherName: 'Hermina Ransun',
     birthDate: '31 October 1906',
     birthYear: 1906,
-    birthPlace: 'Menado, North Celebes',
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
     deathDate: '9 June 1994',
     deathYear: 1994,
     occupation: '1st Mate Merchant Marine (1e Stuurman Grote Stoomvaart)',
     heritageTags: ['Dutch-Minahasan', 'Maritime Officer', 'Dual-Era Citizenship'],
-    region: 'Menado, Batavia & Netherlands',
-    bio: 'Son of Jan Jozef Kuitert and Hermina Ransun. Earned his 3rd, 2nd, and 1st Mate certificates for ocean-going steamships in Batavia (1925–1933). Opted for Indonesian citizenship in 1951 intending to return to his birthplace Menado, and was later restored to Dutch nationality by Royal Naturalization Act in 1961.',
+    region: 'Manado, Batavia & Netherlands',
+    bio: 'Son of Jan Jozef Kuitert and Hermina Ransun. Earned his 3rd, 2nd, and 1st Mate certificates for ocean-going steamships in Batavia (1925–1933). Opted for Indonesian citizenship in 1951 intending to return to his birthplace Manado, and was later restored to Dutch nationality by Royal Naturalization Act in 1961.',
     spouses: [
       {
         id: 'sp-IVfrits-1',
@@ -1849,8 +1849,8 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     dateLabel: '12 May 1842',
     title: 'Marriage of Jacob Lang and Maria Tampemawa',
     personNames: ['Jacob Lang', 'Maria Tampemawa'],
-    location: 'Menado, North Celebes',
-    summary: 'Official Civil Registry entry recording the marriage of Jacob Lang and Maria Tampawawa (Tampemawa) in Menado.',
+    location: 'Manado, North Sulawesi, Indonesia',
+    summary: 'Official Civil Registry entry recording the marriage of Jacob Lang and Maria Tampawawa (Tampemawa) in Manado.',
     sourceCitation: 'Almanak van Nederlandsch-Indië, 1843, p. A 258',
     memberId: 'I',
     pageRef: 'langgene.html#1'
@@ -1862,8 +1862,8 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     dateLabel: '1 December 1845',
     title: 'Death Declarations of Jacob Lang & Young Children',
     personNames: ['Jacob Lang', 'Jacob Philip Lang', 'Johanna Catharina Lang'],
-    location: 'Menado, North Celebes',
-    summary: 'Civil Registry death entries in Menado recording Jacob Lang (1 Dec 1845), followed by his youngest children Jacob Filip Lang (23 Feb 1846) and Johanna Catharina Lang (23 Mar 1846).',
+    location: 'Manado, North Sulawesi, Indonesia',
+    summary: 'Civil Registry death entries in Manado recording Jacob Lang (1 Dec 1845), followed by his youngest children Jacob Filip Lang (23 Feb 1846) and Johanna Catharina Lang (23 Mar 1846).',
     sourceCitation: 'Regerings-Almanak van Nederlandsch-Indië, 1847, p. A 387',
     memberId: 'I',
     pageRef: 'langgene.html#1'
@@ -1873,10 +1873,10 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     category: 'Passenger List',
     year: 1857,
     dateLabel: '11 August 1857',
-    title: 'Departure of Jan Wolters Kuitert from Groningen to Menado',
+    title: 'Departure of Jan Wolters Kuitert from Groningen to Manado',
     personNames: ['Jan Wolters Kuitert', 'Frouke Kuitert', 'Cornelius Kuitert'],
-    location: 'Groningen, Netherlands → Menado, Celebes',
-    summary: 'Following the death of his first wife Hinderkien de Jonge in Groningen, master carpenter Jan Wolters Kuitert sailed to Menado with his two surviving children, later marrying Elisabeth Lang in 1863.',
+    location: 'Groningen, Groningen, Netherlands → Manado, North Sulawesi, Indonesia',
+    summary: 'Following the death of his first wife Hinderkien de Jonge in Groningen, master carpenter Jan Wolters Kuitert sailed to Manado with his two surviving children, later marrying Elisabeth Lang in 1863.',
     sourceCitation: 'GenLias Groningen & Kuitert Family Chronicle',
     memberId: 'II-d',
     pageRef: 'langgene.html#2d'
@@ -1888,8 +1888,8 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     dateLabel: 'March 1865',
     title: 'Double Sibling Marriages: Joseph Lang & Carolina Lang',
     personNames: ['Joseph Lang', 'Amelia Juliane Weintre', 'Carolina Lang', 'Johannis Marcus Parera'],
-    location: 'Menado, North Celebes',
-    summary: 'Within three weeks of each other in Menado, Joseph Lang married Amelie Julienne Weintré (6 March 1865) and his sister Carolina Lang married Majoor Johannis Marcus Parera (29 March 1865).',
+    location: 'Manado, North Sulawesi, Indonesia',
+    summary: 'Within three weeks of each other in Manado, Joseph Lang married Amelie Julienne Weintré (6 March 1865) and his sister Carolina Lang married Majoor Johannis Marcus Parera (29 March 1865).',
     sourceCitation: 'Almanak van Nederlandsch-Indië, 1866, p. 22',
     memberId: 'II-b',
     pageRef: 'langgene.html#2b'
@@ -1901,8 +1901,8 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     dateLabel: '1896',
     title: 'Particuliere Landerijen: Mukupa & Tateli Nutmeg Plantations',
     personNames: ['Jan Wolters Kuitert', 'Jan Alexander Lang'],
-    location: 'Residentie Menado, North Celebes',
-    summary: 'Official colonial land register listing two family-owned nutmeg estates in Menado: Mukupa (27 bouws, owner J.W. Kuitert, tax value 650) and Tateli (26 bouws, owner J.A. Lang, tax value 2400).',
+    location: 'Residentie Manado, North Sulawesi, Indonesia',
+    summary: 'Official colonial land register listing two family-owned nutmeg estates in Manado: Mukupa (27 bouws, owner J.W. Kuitert, tax value 650) and Tateli (26 bouws, owner J.A. Lang, tax value 2400).',
     sourceCitation: 'Almanak van Nederlandsch-Indië 1896, p. 377',
     memberId: 'II-d',
     pageRef: 'langgene.html#2d'
@@ -1915,7 +1915,7 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     title: 'Epitaph of Amelia Juliane Lang-Weintre at Blitar',
     personNames: ['Amelia Juliane Weintre'],
     location: 'Blitar Cemetery, East Java (Plot nr. 287)',
-    summary: '"Hier rust onze geliefde moeder A.J. Lang-Weintre, geb. Menado 22 mei 1846, overleden te Blitar 25 april 1912."',
+    summary: '"Hier rust onze geliefde moeder A.J. Lang-Weintre, geb. Manado 22 mei 1846, overleden te Blitar 25 april 1912."',
     sourceCitation: 'CD-ROM Indische Genealogische Vereniging',
     memberId: 'II-b',
     pageRef: 'langgene.html#2b'
@@ -1940,7 +1940,7 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     dateLabel: '1938',
     title: 'Regeringsalmanak 1938 — 19 Lang Family Professionals Across the Archipelago',
     personNames: ['Maurits Joachim Lang', 'Hendrik Auguste Lang', 'Frans Albert Dirk Lang', 'Louis A.A. Lang', 'Philip Benjamin Lang', 'Jan Pierre Lang', 'James Lang'],
-    location: 'Menado, Malang, Bandung, Surabaya, Palembang, Tegal, Nganjuk',
+    location: 'Manado, Malang, Bandung, Surabaya, Palembang, Tegal, Nganjuk',
     summary: 'Directory snapshot showing Lang descendants across every major sector of the Dutch East Indies: State Railways (S.S.), PTT, Billiton Tin, Royal Dutch Petroleum (N.K.P. Mij.), sugar estates, and regency governance.',
     sourceCitation: 'Regeringsalmanak voor Nederlandsch-Indië, 1938 Adressenlijst',
     memberId: 'III-i',
@@ -1979,12 +1979,193 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     dateLabel: '1961–1962 (Bill nr. 6633)',
     title: 'Dutch Parliamentary Naturalization of Frits Kuitert',
     personNames: ['Frits Kuitert'],
-    location: 'Menado → The Hague, Netherlands',
-    summary: 'Act of Parliament restoring Dutch nationality to retired 1st Mate Frits Kuitert (born Menado 1905/1906), noting his 1951 option for Indonesian citizenship out of devotion to his native Menado.',
+    location: 'Manado, North Sulawesi, Indonesia → The Hague, South Holland, Netherlands',
+    summary: 'Act of Parliament restoring Dutch nationality to retired 1st Mate Frits Kuitert (born Manado 1905/1906), noting his 1951 option for Indonesian citizenship out of devotion to his native Manado.',
     sourceCitation: 'Tweede Kamer Zitting 1961–1962, nr. 6633 (Minister A.C.W. Beerman)',
     memberId: 'IV-o-frits',
     pageRef: 'langgene3.html#3o'
+  },
+  {
+    id: 'arc-voc-1768',
+    category: 'VOC Voyage',
+    year: 1768,
+    dateLabel: '1768',
+    title: 'VOC Garrison & Muster Roll — Early Lang Surname in Maluku & Celebes',
+    personNames: ['Jacob Lang'],
+    location: 'Ambon, Maluku, Indonesia → Manado, North Sulawesi, Indonesia',
+    summary: 'Early Dutch East India Company (VOC) muster rolls from Zeeland and Ambon documenting European Lang ancestors in eastern Indonesia prior to the Manado settlement.',
+    sourceCitation: 'Nationaal Archief VOC Opvarenden (1699–1794), Zeeland Chamber',
+    memberId: 'I',
+    pageRef: 'langgene.html#1'
+  },
+  {
+    id: 'arc-groningen-1821',
+    category: 'Civil Registry',
+    year: 1821,
+    dateLabel: '1821',
+    title: 'Groningen Civil Birth Registration of Jan Wolters Kuitert',
+    personNames: ['Jan Wolters Kuitert', 'Cornelius Kuitert'],
+    location: 'Groningen, Groningen, Netherlands',
+    summary: 'Municipal Burgerlijke Stand birth registration in Stad Groningen recording Jan Wolters Kuitert, son of master silversmith Cornelius Kuitert, before his 1857 migration to Manado.',
+    sourceCitation: 'Groninger Archieven / OpenArchives.nl Civil Birth Register 1821',
+    memberId: 'II-d',
+    pageRef: 'langgene.html#2d'
+  },
+  {
+    id: 'arc-delpher-1869',
+    category: 'Directory',
+    year: 1869,
+    dateLabel: '1869–1885',
+    title: 'Delpher Colonial Press — Manado Harbor & Kema Coastal Shipping Notices',
+    personNames: ['Joseph Lang', 'Hendrik Lang'],
+    location: 'Manado, North Sulawesi, Indonesia & Kema, North Sulawesi, Indonesia',
+    summary: 'Digitized shipping and passenger columns in Java-Bode and Makassaarsche Courant recording coastal schooner voyages out of Manado and Kema commanded by Sea Captain Joseph Lang.',
+    sourceCitation: 'Koninklijke Bibliotheek Delpher Historical Newspapers (Java-Bode / Makassaarsche Courant)',
+    memberId: 'II-b',
+    pageRef: 'langgene.html#2b'
+  },
+  {
+    id: 'arc-parera-1874',
+    category: 'Directory',
+    year: 1874,
+    dateLabel: '1874',
+    title: 'Minahasa District Leadership — Majoor Johannis Marcus Parera of Tombariri',
+    personNames: ['Johannis Marcus Parera', 'Carolina Lang'],
+    location: 'Tombariri, North Sulawesi, Indonesia',
+    summary: 'Colonial Residentie Manado administrative roll documenting Majoor Johannis Marcus Parera’s leadership over District Tombariri in Minahasa and his alliance with the Lang–Tampemawa family.',
+    sourceCitation: 'Regeringsalmanak voor Nederlandsch-Indië, Residentie Manado Districten',
+    memberId: 'II-c',
+    pageRef: 'langgene.html#2c'
+  },
+  {
+    id: 'arc-kitlv-1905',
+    category: 'Directory',
+    year: 1905,
+    dateLabel: 'c. 1900–1915',
+    title: 'Leiden KITLV Digital Plate Collection — Manado, Tondano & Minahasa',
+    personNames: ['Jacob Lang', 'Maria Tampemawa', 'Joseph Lang'],
+    location: 'Manado, North Sulawesi, Indonesia & Tondano, North Sulawesi, Indonesia',
+    summary: 'Archival photographs, topographic maps of Residentie Manado, and European cemetery surveys preserved at Leiden University Libraries (KITLV).',
+    sourceCitation: 'Leiden University Digital Collections — KITLV Colonial Visual Archive',
+    memberId: 'I',
+    pageRef: 'langgene.html#1'
+  },
+  {
+    id: 'arc-diaspora-1955',
+    category: 'Passenger List',
+    year: 1955,
+    dateLabel: '1950–1958',
+    title: 'Post-War Indische Diaspora & Repatriation Registers (Java → NL / Canada / USA)',
+    personNames: ['Maurits Joachim Lang', 'Caroline Jeanette Willemsen'],
+    location: 'Surabaya, East Java, Indonesia → The Hague, South Holland, Netherlands → Calgary, Alberta, Canada',
+    summary: 'Migration and population registration records tracing 4th-generation Lang–Willemsen and Kuitert families resettling in The Hague, Calgary, and Michigan.',
+    sourceCitation: 'CBG Centrum voor Familiegeschiedenis & Indische Genealogische Vereniging (IGV)',
+    memberId: 'III-i',
+    pageRef: 'langgene3.html#3i'
   }
+];
+
+export interface FamilyExternalResource {
+  id: string;
+  title: string;
+  provider: string;
+  category: 'Genealogy Tree' | 'Civil Registry' | 'Colonial Press' | 'Visual Archive' | 'War & Migration';
+  region: string;
+  description: string;
+  url: string;
+}
+
+export const FAMILY_TREE_RESOURCES: FamilyExternalResource[] = [
+  {
+    id: 'res-brouwertree-1',
+    title: 'BrouwerTree — Parenteel Jacob Lang & Maria Tampemawa (Gen I–II)',
+    provider: 'BrouwerTree Genealogy',
+    category: 'Genealogy Tree',
+    region: 'Manado, North Sulawesi, Indonesia',
+    description: 'Primary compiled parenteel covering Jacob Lang, Maria Tampemawa, and their seven children across Manado, Tondano, and Kema.',
+    url: 'https://www.brouwertree.com/langgene.html',
+  },
+  {
+    id: 'res-brouwertree-3',
+    title: 'BrouwerTree — Descendants Part 3 (Gen III–IV Branches)',
+    provider: 'BrouwerTree Genealogy',
+    category: 'Genealogy Tree',
+    region: 'Manado, North Sulawesi, Indonesia & East Java',
+    description: 'Extended 3rd and 4th generation records covering the Lang, Parera, Mamahit, Waworuntu, Kuitert, and Willemsen lines.',
+    url: 'https://www.brouwertree.com/langgene3.html',
+  },
+  {
+    id: 'res-openarch-lang',
+    title: 'OpenArchives.nl — Lang & Kuitert Civil Registry Records',
+    provider: 'OpenArchives.nl',
+    category: 'Civil Registry',
+    region: 'Groningen & The Hague, Netherlands',
+    description: 'Searchable births, marriages, deaths, and population registers connecting Groningen (Kuitert) and The Hague diaspora branches.',
+    url: 'https://www.openarch.nl/search.php?name=Kuitert',
+  },
+  {
+    id: 'res-roosjeroos',
+    title: 'Roosje Roos — Regeringsalmanak Nederlandsch-Indië Index (1815–1923)',
+    provider: 'Roosje Roos Database',
+    category: 'Civil Registry',
+    region: 'Manado, North Sulawesi, Indonesia & Java',
+    description: 'Essential searchable index of Dutch East Indies civil births, marriages, and deaths published in the colonial Regeringsalmanak.',
+    url: 'https://www.roosjeroos.nl/',
+  },
+  {
+    id: 'res-nationaal-archief',
+    title: 'Nationaal Archief — VOC Crew & East Indies Personnel Rolls',
+    provider: 'Nationaal Archief (NL)',
+    category: 'War & Migration',
+    region: 'Netherlands → Indonesia',
+    description: 'Official Dutch National Archives registers for VOC voyages, colonial officials, and East Indies civil service careers.',
+    url: 'https://www.nationaalarchief.nl/onderzoeken/index/nt00444',
+  },
+  {
+    id: 'res-delpher',
+    title: 'Delpher Colonial Newspapers (Java-Bode & Makassaarsche Courant)',
+    provider: 'Koninklijke Bibliotheek',
+    category: 'Colonial Press',
+    region: 'Manado, North Sulawesi, Indonesia & Batavia',
+    description: 'Historical newspaper family notices (familieberichten), shipping manifests, and plantation announcements for Lang, Weintre, and Kuitert.',
+    url: 'https://www.delpher.nl/nl/kranten/results?query=Lang+Menado+OR+Manado',
+  },
+  {
+    id: 'res-kitlv',
+    title: 'Leiden University KITLV — Manado & Minahasa Historical Plates & Maps',
+    provider: 'Leiden University Libraries',
+    category: 'Visual Archive',
+    region: 'Manado & Tondano, North Sulawesi, Indonesia',
+    description: 'High-resolution 19th-century photographs, harbor scenes, and Residentie Manado maps from the KITLV Southeast Asia archive.',
+    url: 'https://digitalcollections.universiteitleiden.nl/search?type=edismax&q=Manado+Minahasa',
+  },
+  {
+    id: 'res-wiewaswie',
+    title: 'CBG WieWasWie — Dutch Family History & Indische Persoonskaarten',
+    provider: 'CBG Centrum voor Familiegeschiedenis',
+    category: 'Civil Registry',
+    region: 'Netherlands',
+    description: 'National Dutch genealogy archive holding civil certificates and post-war Indische repatriation personal cards.',
+    url: 'https://www.wiewaswie.nl/en/',
+  },
+  {
+    id: 'res-ogs',
+    title: 'Oorlogsgravenstichting — WWII Civilian & Military Casualty Register',
+    provider: 'Oorlogsgravenstichting',
+    category: 'War & Migration',
+    region: 'Cimahi, West Java, Indonesia & Bangka',
+    description: 'Memorial registry documenting WWII internment casualties including Frans Albert Dirk Lang at Ereveld Leuwigajah.',
+    url: 'https://oorlogsgravenstichting.nl/zoeken?q=Lang',
+  },
+  {
+    id: 'res-familysearch',
+    title: 'FamilySearch — North Sulawesi & East Indies Civil Registration Catalog',
+    provider: 'FamilySearch',
+    category: 'Civil Registry',
+    region: 'Manado, North Sulawesi, Indonesia',
+    description: 'Microfilmed and indexed colonial civil records, church books, and lineage trees for Manado and Minahasa.',
+    url: 'https://www.familysearch.org/en/wiki/Indonesia_Genealogy',
+  },
 ];
 
 export const HERITAGE_ORIGINS_SEED: HeritageOriginSeed[] = [
@@ -1992,11 +2173,11 @@ export const HERITAGE_ORIGINS_SEED: HeritageOriginSeed[] = [
     id: 'her-lang',
     surname: 'Lang',
     heritageGroup: 'Dutch / Germanic',
-    ancestralRegion: 'Germanic / Netherlands (VOC Zeeland) → Menado, North Sulawesi',
+    ancestralRegion: 'Germanic / Netherlands (VOC Zeeland) → Manado, North Sulawesi, Indonesia',
     firstAppearanceGen: 'Generation I',
     firstAppearanceYear: 1805,
     notableMembers: 'Jacob Lang (I), Hendrik (II-a), Joseph (II-b), Maurits Joachim (III-i)',
-    historicalContext: 'European surname attested in 18th-century VOC rosters (Kolbergen, Roelingen, Ambon 1768) that took deep root in Menado through Jacob Lang & Maria Tampemawa.',
+    historicalContext: 'European surname attested in 18th-century VOC rosters (Kolbergen, Roelingen, Ambon 1768) that took deep root in Manado through Jacob Lang & Maria Tampemawa.',
     wikipediaSlug: 'Indo_people'
   },
   {
@@ -2014,11 +2195,11 @@ export const HERITAGE_ORIGINS_SEED: HeritageOriginSeed[] = [
     id: 'her-kuitert',
     surname: 'Kuitert',
     heritageGroup: 'Dutch / Germanic',
-    ancestralRegion: 'Groningen, Northern Netherlands → Menado & East Java',
+    ancestralRegion: 'Groningen, Northern Netherlands → Manado & East Java',
     firstAppearanceGen: 'Generation II (II-d)',
     firstAppearanceYear: 1821,
     notableMembers: 'Jan Wolters Kuitert, Jan Jozef (III-o), Hendrik Jacob (III-p), Berend Cornelis (III-q)',
-    historicalContext: 'Northern Dutch artisan family (silversmiths & carpenters in Groningen) transplanted to Menado in 1857, bridging Dutch engineering with Minahasan family ties.',
+    historicalContext: 'Northern Dutch artisan family (silversmiths & carpenters in Groningen) transplanted to Manado in 1857, bridging Dutch engineering with Minahasan family ties.',
     wikipediaSlug: 'Groningen'
   },
   {
@@ -2036,11 +2217,11 @@ export const HERITAGE_ORIGINS_SEED: HeritageOriginSeed[] = [
     id: 'her-weintre',
     surname: 'Weintre',
     heritageGroup: 'English-Indisch',
-    ancestralRegion: 'Ternate, Menado & Blitar (English & Franco-Dutch Indisch ties)',
+    ancestralRegion: 'Ternate, Manado & Blitar (English & Franco-Dutch Indisch ties)',
     firstAppearanceGen: 'Generation II (II-b)',
     firstAppearanceYear: 1846,
     notableMembers: 'Amelia Juliane Weintre (m. Joseph Lang), L.A.B. Weintre (Militaire Willemsorde)',
-    historicalContext: 'Distinguished Indisch family documented in Ternate from 1785, Menado, Batavia, and Surabaya; oral family history notes Amelia held English nationality.',
+    historicalContext: 'Distinguished Indisch family documented in Ternate from 1785, Manado, Batavia, and Surabaya; oral family history notes Amelia held English nationality.',
     wikipediaSlug: 'Manado'
   },
   {
@@ -2058,7 +2239,7 @@ export const HERITAGE_ORIGINS_SEED: HeritageOriginSeed[] = [
     id: 'her-uijtenbroeck',
     surname: 'Uijtenbroeck',
     heritageGroup: 'Dutch / Germanic',
-    ancestralRegion: 'Nijmegen (Gelderland, Netherlands) → Ternate (1788) & Menado',
+    ancestralRegion: 'Nijmegen (Gelderland, Netherlands) → Ternate (1788) & Manado',
     firstAppearanceGen: 'Generation II (II-a)',
     firstAppearanceYear: 1845,
     notableMembers: 'Maria Louise Uijtenbroeck (2nd wife of Hendrik Lang), Bernardus Jacob Lang (III-e)',
@@ -2091,7 +2272,7 @@ export const HERITAGE_ORIGINS_SEED: HeritageOriginSeed[] = [
     id: 'her-willemsen',
     surname: 'Willemsen',
     heritageGroup: 'Indo-European (N.O.I.)',
-    ancestralRegion: 'Probolinggo & Malang, East Java → The Hague, Canada & USA',
+    ancestralRegion: 'Probolinggo & Malang, East Java, Indonesia → The Hague, Canada & USA',
     firstAppearanceGen: 'Generation III (III-i)',
     firstAppearanceYear: 1885,
     notableMembers: 'Caroline Jeanette Willemsen (m. Maurits Joachim Lang)',

@@ -86,7 +86,7 @@ function MemberFormBody({
   const [birthPlace, setBirthPlace] = useState(
     editingMember?.birthPlace ??
       familyTrees.find((t) => t.id === initialTreeId)?.region ??
-      'Menado, North Sulawesi'
+      'Manado, North Sulawesi, Indonesia'
   );
   const [deathDate, setDeathDate] = useState(editingMember?.deathDate ?? '');
   const [deathYear, setDeathYear] = useState(
@@ -473,7 +473,7 @@ function MemberFormBody({
             id="birthPlace"
             value={birthPlace}
             onChange={(e) => setBirthPlace(e.target.value)}
-            placeholder="e.g. Menado, North Sulawesi"
+            placeholder="e.g. Manado, North Sulawesi, Indonesia"
           />
         </div>
         <div className="space-y-1.5">

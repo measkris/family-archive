@@ -16,7 +16,7 @@ const HISTORICAL_PLATES = [
   {
     id: 'plate-manado',
     title: 'Manado Bay & Mount Klabat (19th Century)',
-    subtitle: 'Founding Homeland · Residentie Menado, N.O.I.',
+    subtitle: 'Founding Homeland · Residentie Manado, North Sulawesi, Indonesia',
     caption:
       'Historic view of the Minahasan harbor where Jacob Lang (ca. 1805–1845) and Maria Tampemawa raised the first two generations of the family.',
     image: '/images/heritage/manado-harbor.jpg',
@@ -54,7 +54,7 @@ const HISTORICAL_PLATES = [
     title: 'Groningen Historic Canals (Hoge der A)',
     subtitle: 'Ancestral Origin of Jan Wolters Kuitert (II-d)',
     caption:
-      'Northern Dutch city where Jan Wolters Kuitert was born in 1821 to silversmith Cornelius Kuitert before departing for Menado in 1857.',
+      'Northern Dutch city where Jan Wolters Kuitert was born in 1821 to silversmith Cornelius Kuitert before departing for Manado in 1857.',
     image: '/images/heritage/groningen.jpg',
     era: '1821 – 1857',
   },
@@ -172,7 +172,7 @@ export function PhotoArchiveTimeline({
             Historical Places & Maritime Plates
           </h2>
           <p className="text-sm text-muted-foreground">
-            Archival scenes spanning Menado, Minahasa, Lake Tondano, Groningen, and the Java–Holland
+            Archival scenes spanning Manado, Minahasa, Lake Tondano, Groningen, and the Java–Holland
             shipping lanes.
           </p>
         </div>

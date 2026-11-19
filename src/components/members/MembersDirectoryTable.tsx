@@ -15,6 +15,7 @@ import type { FamilyMemberRecord } from '@/lib/data/lang-genealogy';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
+import { useLanguage } from '@/components/i18n/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -48,6 +49,7 @@ export function MembersDirectoryTable({
   onFocusInTree,
   onAddNew,
 }: MembersDirectoryTableProps) {
+  const { t, tc } = useLanguage();
   const [search, setSearch] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
   const [genFilter, setGenFilter] = useState('all');
@@ -135,20 +137,19 @@ export function MembersDirectoryTable({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="font-heritage text-2xl">
-              Complete Parenteel Directory ({filtered.length} Members)
+              {t.completeDirectory} ({filtered.length})
             </CardTitle>
             <CardDescription>
-              Every documented member of the Jacob Lang & Maria Tampemawa lineage stored in the live
-              database.
+              {tc('Every documented member of the Jacob Lang & Maria Tampemawa lineage stored in the live database.')}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={exportCsv}>
-              <Download className="size-4" /> Export CSV
+              <Download className="size-4" /> {t.exportCsv}
             </Button>
             {canEdit && (
               <Button size="sm" onClick={onAddNew}>
-                <Plus className="size-4" /> Add Member
+                <Plus className="size-4" /> {t.addMember}
               </Button>
             )}
           </div>
@@ -161,30 +162,30 @@ export function MembersDirectoryTable({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name, spouse, birthplace, occupation, or heritage..."
+              placeholder={t.searchDirectoryPlaceholder}
               className="pl-9"
             />
           </div>
 
           <Select value={genFilter} onValueChange={setGenFilter}>
             <SelectTrigger className="w-[155px]">
-              <SelectValue placeholder="Generation" />
+              <SelectValue placeholder={t.allGenerations} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Generations</SelectItem>
-              <SelectItem value="1">Generation I</SelectItem>
-              <SelectItem value="2">Generation II</SelectItem>
-              <SelectItem value="3">Generation III</SelectItem>
-              <SelectItem value="4">Generation IV</SelectItem>
+              <SelectItem value="all">{t.allGenerations}</SelectItem>
+              <SelectItem value="1">{t.generationSingular} I</SelectItem>
+              <SelectItem value="2">{t.generationSingular} II</SelectItem>
+              <SelectItem value="3">{t.generationSingular} III</SelectItem>
+              <SelectItem value="4">{t.generationSingular} IV</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={branchFilter} onValueChange={setBranchFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Branch" />
+              <SelectValue placeholder={t.allBranches} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Branches</SelectItem>
+              <SelectItem value="all">{t.allBranches}</SelectItem>
               <SelectItem value="root">Founding Root</SelectItem>
               <SelectItem value="hendrik">II-a · Hendrik Lang</SelectItem>
               <SelectItem value="joseph">II-b · Joseph Lang</SelectItem>
@@ -205,7 +206,7 @@ export function MembersDirectoryTable({
                   onClick={() => toggleSort('fullName')}
                   className="inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
                 >
-                  Ancestor <ArrowUpDown className="size-3" />
+                  {t.ancestorCol} <ArrowUpDown className="size-3" />
                 </button>
               </TableHead>
               <TableHead>
@@ -214,7 +215,7 @@ export function MembersDirectoryTable({
                   onClick={() => toggleSort('generation')}
                   className="inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
                 >
-                  Code & Gen <ArrowUpDown className="size-3" />
+                  {t.codeGenCol} <ArrowUpDown className="size-3" />
                 </button>
               </TableHead>
               <TableHead>
@@ -223,12 +224,12 @@ export function MembersDirectoryTable({
                   onClick={() => toggleSort('birthYear')}
                   className="inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
                 >
-                  Lifespan & Place <ArrowUpDown className="size-3" />
+                  {t.lifespanPlaceCol} <ArrowUpDown className="size-3" />
                 </button>
               </TableHead>
-              <TableHead>Spouse(s)</TableHead>
-              <TableHead>Occupation & Heritage</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t.spousesLabel}</TableHead>
+              <TableHead>{t.occupationHeritageCol}</TableHead>
+              <TableHead className="text-right">{t.actionsCol}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -266,7 +267,7 @@ export function MembersDirectoryTable({
                       {m.code}
                     </Badge>
                     <span className="text-[11px] text-muted-foreground">
-                      Generation {m.generation}
+                      {t.generationSingular} {m.generation}
                     </span>
                   </div>
                 </TableCell>
@@ -278,7 +279,7 @@ export function MembersDirectoryTable({
                   </div>
                   {m.birthPlace && (
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5">
-                      <MapPin className="size-3 shrink-0" /> {m.birthPlace}
+                      <MapPin className="size-3 shrink-0" /> {tc(m.birthPlace)}
                     </div>
                   )}
                 </TableCell>
@@ -301,13 +302,13 @@ export function MembersDirectoryTable({
                 <TableCell className="max-w-[270px]">
                   {m.occupation && (
                     <div className="text-xs text-foreground/90 line-clamp-1 mb-1">
-                      {m.occupation}
+                      {tc(m.occupation)}
                     </div>
                   )}
                   <div className="flex flex-wrap gap-1">
                     {m.heritageTags.slice(0, 2).map((tag) => (
                       <Badge key={tag} variant="gold" className="text-[10px] px-2 py-0">
-                        {tag}
+                        {tc(tag)}
                       </Badge>
                     ))}
                   </div>

@@ -20,6 +20,7 @@ import {
   type FamilyMemberRecord,
   type FamilyTreeGroupRecord,
 } from "@/lib/data/lang-genealogy";
+import { normalizePlaceName } from "@/lib/geo/locations";
 import type { DatabaseAdapter, HeritageOriginRecord } from "./types";
 
 let appInstance: FirebaseApp | null = null;
@@ -187,7 +188,63 @@ function normalizeMember(m: FamilyMemberRecord): FamilyMemberRecord {
   return {
     ...m,
     treeId: m.treeId || DEFAULT_TREE_ID,
+    birthPlace: m.birthPlace ? normalizePlaceName(m.birthPlace) : m.birthPlace,
+    deathPlace: m.deathPlace ? normalizePlaceName(m.deathPlace) : m.deathPlace,
+    burialPlace: m.burialPlace ? normalizePlaceName(m.burialPlace) : m.burialPlace,
+    region: normalizePlaceName(m.region) || m.region,
+    bio: m.bio ? m.bio.replace(/\bMenado\b/g, "Manado") : m.bio,
+    spouses: (m.spouses || []).map((s) => ({
+      ...s,
+      birthPlace: s.birthPlace ? normalizePlaceName(s.birthPlace) : s.birthPlace,
+      deathPlace: s.deathPlace ? normalizePlaceName(s.deathPlace) : s.deathPlace,
+      marriagePlace: s.marriagePlace
+        ? normalizePlaceName(s.marriagePlace)
+        : s.marriagePlace,
+    })),
   };
+}
+
+function normalizeTree(t: FamilyTreeGroupRecord): FamilyTreeGroupRecord {
+  return {
+    ...t,
+    subtitle: normalizePlaceName(t.subtitle) || t.subtitle,
+    region: normalizePlaceName(t.region) || t.region,
+    description: t.description
+      ? t.description.replace(/\bMenado\b/g, "Manado")
+      : t.description,
+  };
+}
+
+function normalizeArchiveRecord(a: ArchivalSourceRecord): ArchivalSourceRecord {
+  return {
+    ...a,
+    title: a.title.replace(/\bMenado\b/g, "Manado"),
+    location: normalizePlaceName(a.location) || a.location,
+    summary: a.summary.replace(/\bMenado\b/g, "Manado"),
+  };
+}
+
+function normalizeOrigin(o: HeritageOriginRecord): HeritageOriginRecord {
+  return {
+    ...o,
+    ancestralRegion: normalizePlaceName(o.ancestralRegion) || o.ancestralRegion,
+    historicalContext: o.historicalContext
+      ? o.historicalContext.replace(/\bMenado\b/g, "Manado")
+      : o.historicalContext,
+  };
+}
+
+function mergeArchivalRecords(
+  records: ArchivalSourceRecord[],
+): ArchivalSourceRecord[] {
+  const byId = new Map<string, ArchivalSourceRecord>();
+  for (const seed of ARCHIVAL_RECORDS) {
+    byId.set(seed.id, normalizeArchiveRecord(seed));
+  }
+  for (const rec of records) {
+    byId.set(rec.id, normalizeArchiveRecord(rec));
+  }
+  return Array.from(byId.values()).sort((a, b) => a.year - b.year);
 }
 
 function sortMembers(list: FamilyMemberRecord[]): FamilyMemberRecord[] {
@@ -204,9 +261,9 @@ function ensureDefaultTree(
   trees: FamilyTreeGroupRecord[],
 ): FamilyTreeGroupRecord[] {
   const byId = new Map<string, FamilyTreeGroupRecord>();
-  byId.set(DEFAULT_TREE_ID, DEFAULT_FAMILY_TREE_GROUP);
+  byId.set(DEFAULT_TREE_ID, normalizeTree(DEFAULT_FAMILY_TREE_GROUP));
   for (const t of trees) {
-    byId.set(t.id, t);
+    byId.set(t.id, normalizeTree(t));
   }
   return Array.from(byId.values()).sort((a, b) => {
     if (a.id === DEFAULT_TREE_ID) return -1;
@@ -279,15 +336,17 @@ export class FirebaseDatabaseAdapter implements DatabaseAdapter {
 
     let archives: ArchivalSourceRecord[];
     if (realArcDocs.length === 0) {
-      archives = ARCHIVAL_RECORDS.map((a) => JSON.parse(JSON.stringify(a)));
+      archives = ARCHIVAL_RECORDS.map((a) =>
+        normalizeArchiveRecord(JSON.parse(JSON.stringify(a))),
+      );
       for (const a of archives) {
         batch.set(doc(db, "archival_records", a.id), a);
         ops++;
       }
     } else {
-      archives = realArcDocs
-        .map((d) => d.data as unknown as ArchivalSourceRecord)
-        .sort((a, b) => a.year - b.year);
+      archives = mergeArchivalRecords(
+        realArcDocs.map((d) => d.data as unknown as ArchivalSourceRecord),
+      );
     }
 
     let origins: HeritageOriginRecord[];
@@ -468,15 +527,15 @@ export class FirebaseDatabaseAdapter implements DatabaseAdapter {
     if (!archivesInFlight) {
       archivesInFlight = getDocs(collection(getDb(), "archival_records"))
         .then((snap) => {
-          const data = snap.docs
+          const raw = snap.docs
             .filter(
               (d) =>
                 !d.id.startsWith(TREE_META_DOC_PREFIX) &&
                 (d.data() as Record<string, unknown>).__recordType !==
                   "family_tree_group",
             )
-            .map((d) => d.data() as ArchivalSourceRecord)
-            .sort((a, b) => a.year - b.year);
+            .map((d) => d.data() as ArchivalSourceRecord);
+          const data = mergeArchivalRecords(raw);
           archivesCache = { data, expiresAt: Date.now() + CACHE_TTL_MS };
           return data;
         })
@@ -496,7 +555,7 @@ export class FirebaseDatabaseAdapter implements DatabaseAdapter {
       originsInFlight = getDocs(collection(getDb(), "heritage_origins"))
         .then((snap) => {
           const data = snap.docs
-            .map((d) => d.data() as HeritageOriginRecord)
+            .map((d) => normalizeOrigin(d.data() as HeritageOriginRecord))
             .sort((a, b) => a.firstAppearanceYear - b.firstAppearanceYear);
           originsCache = { data, expiresAt: Date.now() + CACHE_TTL_MS };
           return data;

@@ -46,6 +46,7 @@ import { AncestryCoupleNode, type AncestryNodeData } from './AncestryCoupleNode'
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { PersonAvatarIllustration } from '@/components/ui/PersonAvatarIllustration';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useLanguage } from '@/components/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -295,6 +296,7 @@ function AncestryTreeCanvasInner({
   onClearFocus,
 }: InteractiveFamilyTreeProps) {
   const { authFetch } = useAuth();
+  const { t, tc } = useLanguage();
   const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
   const [direction, setDirection] = useState<'TB' | 'LR'>('TB');
   const [branchFilter, setBranchFilter] = useState<string>('all');
@@ -610,15 +612,15 @@ function AncestryTreeCanvasInner({
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-stone-100 flex items-center gap-1.5 max-w-[160px] sm:max-w-none truncate">
                   <GitBranch className="size-3.5 text-[#8bc34a] shrink-0" />
-                  <span className="truncate">{treeName}</span>
+                  <span className="truncate">{tc(treeName)}</span>
                 </span>
 
                 <Select value={branchFilter} onValueChange={setBranchFilter}>
                   <SelectTrigger className="h-7 w-auto min-w-[126px] sm:min-w-[155px] max-w-[180px] sm:max-w-none px-2.5 text-[11px] whitespace-nowrap bg-white/10 border-white/15 text-white">
-                    <SelectValue placeholder="All Branches" />
+                    <SelectValue placeholder={t.all4Branches} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All 4 Branches</SelectItem>
+                    <SelectItem value="all">{t.all4Branches}</SelectItem>
                     <SelectItem value="hendrik">II-a · Hendrik Lang</SelectItem>
                     <SelectItem value="joseph">II-b · Joseph Lang</SelectItem>
                     <SelectItem value="carolina">II-c · Carolina &amp; Parera</SelectItem>
@@ -628,12 +630,12 @@ function AncestryTreeCanvasInner({
 
                 <Select value={maxGen} onValueChange={setMaxGen}>
                   <SelectTrigger className="h-7 w-auto min-w-[104px] sm:min-w-[124px] px-2.5 text-[11px] whitespace-nowrap bg-white/10 border-white/15 text-white">
-                    <SelectValue placeholder="Generations" />
+                    <SelectValue placeholder={t.gen1To4} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2">Gen I – II</SelectItem>
-                    <SelectItem value="3">Gen I – III</SelectItem>
-                    <SelectItem value="4">All Gen I – IV</SelectItem>
+                    <SelectItem value="2">{t.gen1To2}</SelectItem>
+                    <SelectItem value="3">{t.gen1To3}</SelectItem>
+                    <SelectItem value="4">{t.gen1To4}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -648,7 +650,7 @@ function AncestryTreeCanvasInner({
                         autoFocus
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Find person or spouse..."
+                        placeholder={t.findPersonPlaceholder}
                         className="h-7 pl-8 pr-7 text-xs bg-[#232527] border-white/25 text-white placeholder:text-stone-400"
                       />
                       <button
@@ -709,7 +711,7 @@ function AncestryTreeCanvasInner({
                       onClick={() => setSearchOpen(true)}
                       className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/15 hover:bg-white/25 px-3 text-xs font-medium text-white transition-colors cursor-pointer"
                     >
-                      <Search className="size-3.5" /> Find in tree
+                      <Search className="size-3.5" /> {t.findInTree}
                     </button>
                   )}
                 </div>
@@ -907,7 +909,7 @@ function AncestryTreeCanvasInner({
                 <h2 className="font-heritage text-xl font-bold leading-tight text-[#1e2022]">
                   {inspector.name}
                 </h2>
-                <p className="text-xs text-stone-600 mt-0.5">{inspector.subtitle}</p>
+                <p className="text-xs text-stone-600 mt-0.5">{tc(inspector.subtitle)}</p>
                 <p className="font-mono text-[11px] text-stone-500 mt-1">
                   {inspector.birthDate || inspector.deathDate
                     ? `${inspector.birthDate || 'Unknown birth'}${
@@ -931,7 +933,7 @@ function AncestryTreeCanvasInner({
                   }
                 }}
               >
-                <UserCheck className="size-3.5" /> Full Profile
+                <UserCheck className="size-3.5" /> {t.fullProfile}
               </Button>
               {canEdit && (
                 <>
@@ -979,7 +981,7 @@ function AncestryTreeCanvasInner({
                   : 'border-transparent text-stone-500 hover:text-stone-800'
               )}
             >
-              Details &amp; Family
+              {t.detailsAndFamily}
               <span className="rounded bg-[#73a922] px-1.5 py-0.2 text-[10px] text-white font-mono">
                 {(inspector.parent ? 1 : 0) +
                   inspector.siblings.length +
@@ -998,7 +1000,7 @@ function AncestryTreeCanvasInner({
                   : 'border-transparent text-stone-500 hover:text-stone-800'
               )}
             >
-              Heritage &amp; Sources
+              {t.heritageAndSources}
               <span className="rounded bg-stone-200 px-1.5 py-0.2 text-[10px] text-stone-700 font-mono">
                 {inspector.sources.length}
               </span>
@@ -1014,10 +1016,10 @@ function AncestryTreeCanvasInner({
                   <div className="flex items-start gap-2">
                     <Calendar className="size-3.5 text-[#0b4a68] shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <span className="font-semibold text-stone-700">Born: </span>
+                      <span className="font-semibold text-stone-700">{t.bornLabel}: </span>
                       <span className={inspector.birthDate || inspector.birthPlace ? 'text-stone-900' : 'text-stone-400 italic'}>
-                        {[inspector.birthDate, inspector.birthPlace].filter(Boolean).join(' · ') ||
-                          'No birth data recorded'}
+                        {[inspector.birthDate, tc(inspector.birthPlace)].filter(Boolean).join(' · ') ||
+                          t.noBirthData}
                       </span>
                     </div>
                   </div>
@@ -1025,10 +1027,10 @@ function AncestryTreeCanvasInner({
                   <div className="flex items-start gap-2">
                     <Calendar className="size-3.5 text-amber-700 shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <span className="font-semibold text-stone-700">Died: </span>
+                      <span className="font-semibold text-stone-700">{t.diedLabel}: </span>
                       <span className={inspector.deathDate || inspector.deathPlace ? 'text-stone-900' : 'text-stone-400 italic'}>
-                        {[inspector.deathDate, inspector.deathPlace].filter(Boolean).join(' · ') ||
-                          'No death data recorded'}
+                        {[inspector.deathDate, tc(inspector.deathPlace)].filter(Boolean).join(' · ') ||
+                          t.noDeathData}
                       </span>
                     </div>
                   </div>
@@ -1037,7 +1039,7 @@ function AncestryTreeCanvasInner({
                     <div className="flex items-start gap-2">
                       <Heart className="size-3.5 text-rose-600 shrink-0 mt-0.5" />
                       <div className="min-w-0">
-                        <span className="font-semibold text-stone-700">Marriage: </span>
+                        <span className="font-semibold text-stone-700">{t.marriageLabel}: </span>
                         <span
                           className={
                             inspector.marriageDate || inspector.marriagePlace
@@ -1045,9 +1047,9 @@ function AncestryTreeCanvasInner({
                               : 'text-stone-400 italic'
                           }
                         >
-                          {[inspector.marriageDate, inspector.marriagePlace]
+                          {[inspector.marriageDate, tc(inspector.marriagePlace)]
                             .filter(Boolean)
-                            .join(' · ') || 'No marriage date recorded'}
+                            .join(' · ') || '—'}
                         </span>
                       </div>
                     </div>
@@ -1056,9 +1058,9 @@ function AncestryTreeCanvasInner({
                   <div className="flex items-start gap-2">
                     <Briefcase className="size-3.5 text-stone-500 shrink-0 mt-0.5" />
                     <div className="min-w-0">
-                      <span className="font-semibold text-stone-700">Occupation: </span>
+                      <span className="font-semibold text-stone-700">{t.occupationLabel}: </span>
                       <span className={inspector.occupation ? 'text-stone-900' : 'text-stone-400 italic'}>
-                        {inspector.occupation || 'No occupation data recorded'}
+                        {tc(inspector.occupation) || t.noOccupationData}
                       </span>
                     </div>
                   </div>

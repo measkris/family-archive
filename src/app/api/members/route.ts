@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       occupation: body.occupation?.trim() || undefined,
       religion: body.religion?.trim() || undefined,
       heritageTags: Array.isArray(body.heritageTags) ? body.heritageTags : [],
-      region: body.region?.trim() || body.birthPlace?.trim() || 'Menado, North Sulawesi',
+      region: body.region?.trim() || body.birthPlace?.trim() || 'Manado, North Sulawesi, Indonesia',
       photoUrl: body.photoUrl?.trim() || undefined,
       bio: body.bio?.trim() || '',
       spouses: Array.isArray(body.spouses) ? body.spouses : [],

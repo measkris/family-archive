@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Archive,
   BookOpen,
@@ -15,10 +16,23 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react';
-import type { ArchivalSourceRecord, FamilyMemberRecord } from '@/lib/data/lang-genealogy';
+import {
+  FAMILY_TREE_RESOURCES,
+  type ArchivalSourceRecord,
+  type FamilyMemberRecord,
+} from '@/lib/data/lang-genealogy';
 import type { HeritageOriginRecord } from '@/lib/db/types';
 import type { OpenArchiveRecord } from '@/app/api/heritage/openarchives/route';
+import { useLanguage } from '@/components/i18n/LanguageContext';
 import { Badge } from '@/components/ui/badge';
+
+const AncestralLocationsMap = dynamic(
+  () => import('@/components/heritage/AncestralLocationsMap').then((m) => m.AncestralLocationsMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[380px] sm:h-[440px] w-full rounded-xl" />,
+  }
+);
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +57,7 @@ import {
 interface HeritagePlaceApiRow {
   id: string;
   placeName: string;
+  province?: string;
   historicalName: string;
   country: string;
   eraInTree: string;
@@ -102,8 +117,10 @@ export function HeritageDataTables({
   members,
   onSelectMemberById,
 }: HeritageDataTablesProps) {
+  const { t, tc } = useLanguage();
   // Active sub-tab for lazy on-demand API fetching
-  const [subTab, setSubTab] = useState<'origins' | 'openarchives' | 'places' | 'sources'>('origins');
+  const [subTab, setSubTab] = useState<'origins' | 'openarchives' | 'places' | 'sources'>('places');
+  const [focusedPlaceId, setFocusedPlaceId] = useState<string | null>(null);
 
   // 1. Surname Heritage Origins (Nationalize.io + OpenArchives + Wikipedia)
   const [origins, setOrigins] = useState<HeritageOriginRecord[]>(initialOrigins);
@@ -180,7 +197,19 @@ export function HeritageDataTables({
 
   useEffect(() => {
     let cancelled = false;
-    async function enrichIfNeeded() {
+    async function loadInitialData() {
+      // Load ancestral places for the default Locations & Map sub-tab
+      try {
+        const placesRes = await fetch('/api/heritage/places');
+        const placesJson = await placesRes.json();
+        if (!cancelled && Array.isArray(placesJson.places)) {
+          setPlaces(placesJson.places);
+          setPlacesLoadedOnce(true);
+        }
+      } catch {
+        // non-fatal
+      }
+
       const needsEnrich = initialOrigins.some(
         (o) => !o.lastEnrichedAt || o.openArchivesCount === undefined
       );
@@ -195,7 +224,7 @@ export function HeritageDataTables({
         // non-fatal
       }
     }
-    enrichIfNeeded();
+    void loadInitialData();
     return () => {
       cancelled = true;
     };
@@ -286,7 +315,7 @@ export function HeritageDataTables({
             </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-sky-100/90 leading-relaxed">
-            Born from the union of <strong>Jacob Lang</strong> (VOC-era European lineage in Menado)
+            Born from the union of <strong>Jacob Lang</strong> (VOC-era European lineage in Manado)
             and <strong>Maria Tampemawa</strong> (Minahasan, North Sulawesi), married 12 May 1842.
           </CardContent>
         </Card>
@@ -313,7 +342,7 @@ export function HeritageDataTables({
             <CardTitle className="font-heritage text-2xl">4 Continents</CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground leading-relaxed">
-            Menado · Kema · Tondano · Gorontalo → East/West Java (Malang, Blitar, Bandung) →
+            Manado · Kema · Tondano · Gorontalo → East/West Java (Malang, Blitar, Bandung) →
             Netherlands (The Hague, Amsterdam) → Canada (Calgary) & USA (Michigan, PA, FL).
           </CardContent>
         </Card>
@@ -339,18 +368,18 @@ export function HeritageDataTables({
         onValueChange={(v) => handleSubTabChange(v as typeof subTab)}
         className="w-full animate-slide-up"
       >
-        <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap p-1.5 gap-1">
-          <TabsTrigger value="origins">
-            <Globe2 className="size-4" /> Surname Heritage & API Origins ({origins.length})
-          </TabsTrigger>
-          <TabsTrigger value="openarchives">
-            <Archive className="size-4" /> Live Dutch & Indies Archives (OpenArchives API)
-          </TabsTrigger>
+        <TabsList className="w-full justify-start overflow-x-auto no-scrollbar h-auto flex-wrap p-1.5 gap-1">
           <TabsTrigger value="places">
-            <Compass className="size-4" /> Ancestral Homelands (Wikipedia API)
+            <Compass className="size-4" /> {t.subTabPlacesMap}
           </TabsTrigger>
           <TabsTrigger value="sources">
-            <BookOpen className="size-4" /> BrouwerTree Primary Sources ({archivalRecords.length})
+            <BookOpen className="size-4" /> {t.subTabPrimarySources} ({archivalRecords.length + FAMILY_TREE_RESOURCES.length})
+          </TabsTrigger>
+          <TabsTrigger value="origins">
+            <Globe2 className="size-4" /> {t.subTabOrigins} ({origins.length})
+          </TabsTrigger>
+          <TabsTrigger value="openarchives">
+            <Archive className="size-4" /> {t.subTabOpenArchives}
           </TabsTrigger>
         </TabsList>
 
@@ -736,7 +765,25 @@ export function HeritageDataTables({
               </div>
             </CardHeader>
 
-            <CardContent className="p-0">
+            <CardContent className="p-0 space-y-4">
+              {/* Interactive Free Leaflet + OpenStreetMap / CartoDB Ancestral Locations Map */}
+              <div className="px-4 sm:px-6 pt-2 pb-1 space-y-2 border-b border-border/70">
+                <div>
+                  <h3 className="font-heritage text-xl font-bold text-foreground flex items-center gap-2">
+                    <MapPin className="size-5 text-[#73a922]" />
+                    {t.interactiveMapTitle}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {t.interactiveMapSubtitle}
+                  </p>
+                </div>
+                <AncestralLocationsMap
+                  members={members}
+                  focusedLocationId={focusedPlaceId}
+                  onSelectMemberById={onSelectMemberById}
+                />
+              </div>
+
               {placesLoading && places.length === 0 ? (
                 <div className="p-4 space-y-3 animate-fade-in">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground pb-1">
@@ -798,12 +845,23 @@ export function HeritageDataTables({
                             )}
                             <div>
                               <div className="font-heritage text-base font-bold text-foreground">
-                                {p.placeName}
+                                {tc(p.placeName)}
                               </div>
-                              <div className="text-[11px] text-muted-foreground">{p.country}</div>
+                              <div className="text-[11px] text-muted-foreground">
+                                {[p.province, p.country].filter(Boolean).map((s) => tc(s)).join(', ')}
+                              </div>
                               {p.coordinates && (
-                                <div className="font-mono text-[10px] text-muted-foreground">
-                                  {p.coordinates.lat.toFixed(2)}°, {p.coordinates.lon.toFixed(2)}°
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="font-mono text-[10px] text-muted-foreground">
+                                    {p.coordinates.lat.toFixed(2)}°, {p.coordinates.lon.toFixed(2)}°
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setFocusedPlaceId(p.id)}
+                                    className="inline-flex items-center gap-1 rounded-full bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-[#0b4a68] cursor-pointer"
+                                  >
+                                    <MapPin className="size-2.5" /> {t.mapShowOnMap}
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -849,8 +907,58 @@ export function HeritageDataTables({
           </Card>
         </TabsContent>
 
-        {/* TAB 4: BrouwerTree Primary Sources Index */}
-        <TabsContent value="sources">
+        {/* TAB 4: Family Tree Resources & Primary Archival Citations */}
+        <TabsContent value="sources" className="space-y-5">
+          {/* Curated External Research & Archive Resources for Jacob Lang & Maria Tampemawa */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="font-heritage text-2xl flex items-center gap-2">
+                <BookOpen className="size-5 text-[#73a922]" />
+                {t.familyResourcesTitle}
+              </CardTitle>
+              <CardDescription>{t.familyResourcesSubtitle}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {FAMILY_TREE_RESOURCES.map((res) => (
+                  <a
+                    key={res.id}
+                    href={res.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-white hover:border-[#0b4a68]/50 hover:shadow-sm p-3.5 transition-all"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5">
+                        <Badge variant="outline" className="text-[10px] bg-white">
+                          {res.category}
+                        </Badge>
+                        <span className="text-[11px] font-medium text-stone-500">
+                          {res.provider}
+                        </span>
+                      </div>
+                      <h4 className="font-semibold text-sm text-stone-900 group-hover:text-[#0b4a68] transition-colors">
+                        {tc(res.title)}
+                      </h4>
+                      <p className="text-xs text-stone-600 leading-relaxed">
+                        {tc(res.description)}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200/70 text-[11px]">
+                      <span className="text-stone-500 flex items-center gap-1 truncate">
+                        <MapPin className="size-3 text-[#73a922] shrink-0" />
+                        <span className="truncate">{tc(res.region)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-[#0b4a68] shrink-0 ml-2">
+                        {t.openExternalResource} <ExternalLink className="size-3" />
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -859,8 +967,8 @@ export function HeritageDataTables({
                     Primary Archival Citations (1723 – 1962)
                   </CardTitle>
                   <CardDescription>
-                    Historical records transcribed from BrouwerTree (Almanak van Nederlandsch-Indië,
-                    VOC Zeeland rosters, gravestones, shipping lists, and Dutch Parliament).
+                    Historical records transcribed from BrouwerTree, Nationaal Archief VOC rolls,
+                    Delpher newspapers, KITLV Leiden, OpenArchives.nl, and Dutch Parliament.
                   </CardDescription>
                 </div>
 

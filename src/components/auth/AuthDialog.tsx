@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/primitives';
 import { useAuth } from './AuthContext';
+import { useLanguage } from '@/components/i18n/LanguageContext';
 
 interface AuthDialogProps {
   open: boolean;
@@ -78,6 +79,7 @@ export function AuthDialog({
     signInWithGoogleRedirect,
     firebaseConfig,
   } = useAuth();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -137,10 +139,10 @@ export function AuthDialog({
         <DialogHeader>
           <DialogTitle className="font-heritage text-2xl flex items-center gap-2 text-stone-900">
             <ShieldCheck className="size-5 text-[#73a922]" />
-            Family Archive Account
+            {t.authTitle}
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm text-stone-600">
-            Sign in or register to create your own family trees, toggle private access, and invite collaborators. Public visitors view published trees read-only.
+            {t.authDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -174,7 +176,7 @@ export function AuthDialog({
                 />
               </svg>
             )}
-            Continue with Google
+            {t.continueWithGoogle}
           </Button>
 
           <div className="text-center -mt-2">
@@ -184,14 +186,14 @@ export function AuthDialog({
               onClick={() => void handleGoogleRedirect()}
               className="text-[11px] font-medium text-[#0b4a68] hover:underline cursor-pointer disabled:opacity-50"
             >
-              Can&apos;t click inside popup? Sign in with Google via full page
+              {t.googleFullPageFallback}
             </button>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-stone-200" />
             <span className="shrink-0 whitespace-nowrap text-[11px] font-medium uppercase tracking-wider text-stone-400">
-              or with email
+              {t.orWithEmail}
             </span>
             <div className="h-px flex-1 bg-stone-200" />
           </div>
@@ -205,10 +207,10 @@ export function AuthDialog({
           >
             <TabsList className="grid w-full grid-cols-2 bg-stone-100">
               <TabsTrigger value="login" className="gap-1.5 text-xs">
-                <LogIn className="size-3.5" /> Sign In
+                <LogIn className="size-3.5" /> {t.signInTab}
               </TabsTrigger>
               <TabsTrigger value="register" className="gap-1.5 text-xs">
-                <UserPlus className="size-3.5" /> Register
+                <UserPlus className="size-3.5" /> {t.registerTab}
               </TabsTrigger>
             </TabsList>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   ArrowLeft,
   BookOpen,
@@ -38,7 +39,16 @@ import { Input } from '@/components/ui/input';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useLanguage } from '@/components/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
+
+const AncestralLocationsMap = dynamic(
+  () => import('@/components/heritage/AncestralLocationsMap').then((m) => m.AncestralLocationsMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />,
+  }
+);
 
 interface AncestryProfileViewProps {
   member: FamilyMemberRecord;
@@ -142,6 +152,7 @@ export function AncestryProfileView({
   onPhotoUpdated,
 }: AncestryProfileViewProps) {
   const { authFetch } = useAuth();
+  const { t, tc } = useLanguage();
   const [subTab, setSubTab] = useState<'facts' | 'hints' | 'gallery' | 'lifestory' | 'heritage'>(
     'facts'
   );
@@ -635,23 +646,27 @@ export function AncestryProfileView({
 
               <div className="mt-1.5 space-y-0.5 text-xs sm:text-sm">
                 <div className="text-stone-100">
-                  <span className="font-bold tracking-wide text-stone-300 mr-1.5">BIRTH</span>
+                  <span className="font-bold tracking-wide text-stone-300 mr-1.5">
+                    {t.bornLabel.toUpperCase()}
+                  </span>
                   <span className="font-semibold">
                     {member.birthDate || (member.birthYear ? String(member.birthYear) : 'Unknown')}
                   </span>
                   {member.birthPlace && (
-                    <span className="text-stone-300"> • {member.birthPlace}</span>
+                    <span className="text-stone-300"> • {tc(member.birthPlace)}</span>
                   )}
                 </div>
 
                 {(member.deathDate || member.deathYear) && (
                   <div className="text-stone-100">
-                    <span className="font-bold tracking-wide text-stone-300 mr-1.5">DEATH</span>
+                    <span className="font-bold tracking-wide text-stone-300 mr-1.5">
+                      {t.diedLabel.toUpperCase()}
+                    </span>
                     <span className="font-semibold">
                       {member.deathDate || String(member.deathYear)}
                     </span>
                     {member.deathPlace && (
-                      <span className="text-stone-300"> • {member.deathPlace}</span>
+                      <span className="text-stone-300"> • {tc(member.deathPlace)}</span>
                     )}
                   </div>
                 )}
@@ -725,15 +740,15 @@ export function AncestryProfileView({
       <div className="border-b border-stone-300 bg-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-center sm:justify-start gap-6 overflow-x-auto">
           {[
-            { id: 'facts', label: 'Facts' },
+            { id: 'facts', label: t.factsTab },
             {
               id: 'hints',
-              label: 'Hints',
+              label: t.hintsTab,
               count: hintsTotal > 0 ? hintsTotal : member.sources.length,
             },
-            { id: 'gallery', label: 'Gallery' },
-            { id: 'lifestory', label: 'LifeStory' },
-            { id: 'heritage', label: 'Heritage & Lineage' },
+            { id: 'gallery', label: t.galleryTab },
+            { id: 'lifestory', label: t.lifeStoryTab },
+            { id: 'heritage', label: t.heritageTab },
           ].map((tab) => {
             const active = subTab === tab.id;
             return (
@@ -1145,6 +1160,28 @@ export function AncestryProfileView({
                 )}
               </div>
             </section>
+          </div>
+        )}
+
+        {/* Compact Interactive Location Map Pin in Facts View */}
+        {subTab === 'facts' && (member.birthPlace || member.region) && (
+          <div className="mt-5 rounded-xl border border-stone-300 bg-white p-4 space-y-2.5 shadow-2xs">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-[#222426] flex items-center gap-1.5">
+                <MapPin className="size-4 text-[#73a922]" />
+                {t.ancestralMapLocation}
+              </h3>
+              <span className="text-xs font-medium text-[#0b4a68]">
+                {tc(member.birthPlace || member.region)}
+              </span>
+            </div>
+            <AncestralLocationsMap
+              members={allMembers}
+              singleLocationText={member.birthPlace || member.region}
+              secondaryLocationText={member.deathPlace}
+              personName={member.fullName}
+              heightClass="h-[220px]"
+            />
           </div>
         )}
 
