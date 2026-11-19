@@ -268,7 +268,7 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
     subTabPrimarySources: 'Family Tree Resources',
     interactiveMapTitle: 'Interactive Ancestral Geography & Migration Map',
     interactiveMapSubtitle:
-      'Click any location pin to inspect Manado, North Sulawesi, Indonesia, East Java, Groningen, and the global family diaspora (free OpenStreetMap / CartoDB tiles).',
+      'Click any location pin to inspect Manado, North Sulawesi, Indonesia, East Java, Groningen, and the global family diaspora (free OpenStreetMap tiles, no API key needed).',
     mapFocusAll: 'Fit All Locations',
     mapToggleRoutes: 'Migration Routes',
     mapShowOnMap: 'Locate on Map',
@@ -409,7 +409,7 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
     subTabPrimarySources: 'Sumber Pohon Keluarga',
     interactiveMapTitle: 'Peta Geografi & Migrasi Leluhur Interaktif',
     interactiveMapSubtitle:
-      'Klik pin lokasi mana saja untuk melihat Manado, Sulawesi Utara, Indonesia, Jawa Timur, Groningen, dan diaspora keluarga (peta gratis OpenStreetMap / CartoDB).',
+      'Klik pin lokasi mana saja untuk melihat Manado, Sulawesi Utara, Indonesia, Jawa Timur, Groningen, dan diaspora keluarga (peta gratis OpenStreetMap, tanpa API key).',
     mapFocusAll: 'Tampilkan Semua Lokasi',
     mapToggleRoutes: 'Rute Migrasi',
     mapShowOnMap: 'Lihat di Peta',
@@ -550,7 +550,7 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
     subTabPrimarySources: 'Stamboombronnen',
     interactiveMapTitle: 'Interactieve Voorouderlijke Geografie- & Migratiekaart',
     interactiveMapSubtitle:
-      'Klik op een locatiepin om Manado (Noord-Sulawesi, Indonesië), Oost-Java, Groningen en de wereldwijde diaspora te verkennen (gratis OpenStreetMap / CartoDB-kaarten).',
+      'Klik op een locatiepin om Manado (Noord-Sulawesi, Indonesië), Oost-Java, Groningen en de wereldwijde diaspora te verkennen (gratis OpenStreetMap-kaarten, geen API-sleutel nodig).',
     mapFocusAll: 'Toon Alle Locaties',
     mapToggleRoutes: 'Migratieroutes',
     mapShowOnMap: 'Toon op Kaart',

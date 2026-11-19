@@ -241,6 +241,7 @@ export function normalizePlaceName(raw?: string): string {
   // Exact/common legacy region replacements
   const exactMap: Array<[RegExp, string]> = [
     [/^Manado(?:,\s*North Sulawesi(?:\s*\(N\.O\.I\.\))?|,\s*North Celebes|,\s*Celebes|,\s*N\.O\.I\.)?$/i, 'Manado, North Sulawesi, Indonesia'],
+    [/^Minahasa(?:,\s*North Sulawesi(?:\s*\(N\.O\.I\.\))?|,\s*North Celebes|,\s*Celebes)?$/i, 'Minahasa, North Sulawesi, Indonesia'],
     [/^Tondano(?:,\s*North Sulawesi(?:\s*\(N\.O\.I\.\))?|,\s*Minahasa|,\s*North Celebes|,\s*Celebes)?$/i, 'Tondano, North Sulawesi, Indonesia'],
     [/^Kema(?:,\s*North Sulawesi(?:\s*\(N\.O\.I\.\))?|,\s*North Celebes|,\s*Minahasa|,\s*Celebes)?$/i, 'Kema, North Sulawesi, Indonesia'],
     [/^Tombariri(?:,\s*Minahasa|,\s*North Sulawesi)?$/i, 'Tombariri, North Sulawesi, Indonesia'],
@@ -274,7 +275,8 @@ export function normalizePlaceName(raw?: string): string {
     .replace(/Manado,\s*North Celebes/gi, 'Manado, North Sulawesi, Indonesia')
     .replace(/Tondano,\s*North Sulawesi(?!,\s*Indonesia)/gi, 'Tondano, North Sulawesi, Indonesia')
     .replace(/Kema,\s*North Sulawesi(?!,\s*Indonesia)/gi, 'Kema, North Sulawesi, Indonesia')
-    .replace(/Kema,\s*North Celebes/gi, 'Kema, North Sulawesi, Indonesia');
+    .replace(/Kema,\s*North Celebes/gi, 'Kema, North Sulawesi, Indonesia')
+    .replace(/Minahasa,\s*North Celebes/gi, 'Minahasa, North Sulawesi, Indonesia');
 
   return text;
 }
