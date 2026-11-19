@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Family Archive
+
+Interactive photographic family tree, cultural heritage explorer, and live historical archive website (`family-archive`) built with **Next.js 16 (App Router)**, **Tailwind CSS 4**, **shadcn/ui**, **React Flow**, **Google Cloud Firestore**, and **Cloudinary**.
+
+Currently featuring the **Jacob Lang & Maria Tampemawa Family** collection ([brouwertree.com/langgene.html](https://www.brouwertree.com/langgene.html) & `langgene3.html`).
+
+## Key Features
+
+- **Interactive Photographic Family Tree** (`@xyflow/react` + `@dagrejs/dagre`):
+  - Pan, zoom, minimap, Vertical/Horizontal layout toggle, branch filtering (`II-a Hendrik`, `II-b Joseph`, `II-c Carolina/Parera`, `II-d Elisabeth/Kuitert`), generation depth filter, search-to-focus, and direct ancestral/descendant **Lineage Tracing**.
+  - Click any ancestor card to open their archival dossier, browse spouses/children/sources, edit details, add descendants, or upload custom portrait photos.
+- **Heritage & Live Public Data APIs (Interactive shadcn Data Tables)**:
+  - **Surname Heritage Matrix**: Live enrichment via **Nationalize.io API** + **OpenArchives.nl** record counts + **Wikipedia REST API**, cached in the database, with CSV export.
+  - **Live Dutch & Indies Civil Archives**: Real-time search against **OpenArchives.nl API v1.0** (`api.openarch.nl`) with direct links to original civil certificates.
+  - **Ancestral Homelands Atlas**: Live **Wikipedia REST API v1** geography and historical context for Manado, Minahasa, Tondano, Kema, Groningen, Blitar, and the Indo-European diaspora.
+  - **BrouwerTree Primary Sources Index**: Filterable table of VOC voyages (1723/1778), *Almanak van Nederlandsch-Indië* entries, gravestones, shipping lists (*MS Sibajak*), war graves, and naturalization records.
+- **Complete Members Directory Table & Photo Archive Timeline**:
+  - Searchable, sortable directory of all family members with CSV export, portrait cabinet, historical plates, and 1723–1962 timeline.
+- **Free Database Architecture**:
+  - Runs immediately with zero config on **local SQLite / LibSQL** (`./data/lang-heritage.db`).
+  - Drop in Google Firebase keys in `.env.local` (see `.env.example`) to switch seamlessly to **Google Firebase Firestore (Free Spark Tier)**, or add `TURSO_DATABASE_URL` for **Turso Cloud SQLite**.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:9090](http://localhost:9090).

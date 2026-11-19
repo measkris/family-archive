@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <!-- Left head sphere gradient (sky cyan -> cobalt blue) -->
+    <radialGradient id="fa-head-left" cx="35%" cy="25%" r="75%">
+      <stop offset="0%" stop-color="#3BD0FF" />
+      <stop offset="52%" stop-color="#2E86D8" />
+      <stop offset="100%" stop-color="#3551A3" />
+    </radialGradient>
+
+    <!-- Right head sphere gradient (fresh mint green -> deep teal) -->
+    <radialGradient id="fa-head-right" cx="35%" cy="25%" r="75%">
+      <stop offset="0%" stop-color="#64CE8A" />
+      <stop offset="55%" stop-color="#279B90" />
+      <stop offset="100%" stop-color="#116E8A" />
+    </radialGradient>
+
+    <!-- Back loop gradient (lime green arch -> teal stem -> ocean blue bottom) -->
+    <linearGradient id="fa-back-loop" x1="88%" y1="34%" x2="24%" y2="94%">
+      <stop offset="0%" stop-color="#9BD365" />
+      <stop offset="28%" stop-color="#53B786" />
+      <stop offset="62%" stop-color="#1C8C96" />
+      <stop offset="86%" stop-color="#0E6D9A" />
+      <stop offset="100%" stop-color="#234896" />
+    </linearGradient>
+
+    <!-- Front sweeping blue ribbon sash (cobalt -> azure -> luminous cyan) -->
+    <linearGradient id="fa-front-sash" x1="16%" y1="54%" x2="96%" y2="66%">
+      <stop offset="0%" stop-color="#314FA3" />
+      <stop offset="32%" stop-color="#376BC4" />
+      <stop offset="64%" stop-color="#29B2EE" />
+      <stop offset="100%" stop-color="#45D0FC" />
+    </linearGradient>
+
+    <!-- Inner depth fold shadow on left curve -->
+    <linearGradient id="fa-left-fold" x1="18%" y1="62%" x2="55%" y2="78%">
+      <stop offset="0%" stop-color="#253E8C" stop-opacity="0.88" />
+      <stop offset="65%" stop-color="#2C65B8" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#29B2EE" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Subtle inner shadow where front ribbon crosses green stem -->
+    <linearGradient id="fa-stem-shadow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#0A3A4A" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#0A3A4A" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Figure Head -->
+  <circle cx="43.5" cy="29.5" r="14.5" fill="url(#fa-head-left)" />
+
+  <!-- Right Figure Head -->
+  <circle cx="81.5" cy="24" r="12" fill="url(#fa-head-right)" />
+
+  <!-- Back Intertwined U-Curve + Right Green Arch -->
+  <path
+    d="M27 83
+       C31 100 44 111 60 111
+       C76 111 87 99 88 81
+       L88 60
+       C88 53 91 49 95 49
+       C99 49 102 53 102 60
+       L102 68
+       C106 64 108 59 108 53
+       C108 42 100 35 90 35
+       C79 35 72 44 72 58
+       L72 80
+       C72 91 66 98 58 98
+       C48 98 41 90 39 77 Z"
+    fill="url(#fa-back-loop)"
+  />
+
+  <!-- Soft shadow cast onto right stem right under the front sash -->
+  <path
+    d="M72 79 L88 79 L87 88 L72 86 Z"
+    fill="url(#fa-stem-shadow)"
+  />
+
+  <!-- Front Sweeping Blue Ribbon Sash (embracing left to right) -->
+  <path
+    d="M27 85
+       C20 75 19 61 25 52
+       C31 43 44 41 58 49
+       C70 56 80 62 91 61
+       C100 60 105 55 106 47
+       C109 53 110 61 107 69
+       C102 80 88 85 73 82
+       C60 79 49 69 39 68
+       C32 67 28 73 27 85 Z"
+    fill="url(#fa-front-sash)"
+  />
+
+  <!-- Dimensional Fold Shadow along inner left blue curve -->
+  <path
+    d="M27 85
+       C23 76 24 65 31 60
+       C38 55 48 58 58 64
+       C55 68 59 71 66 74
+       C54 71 45 68 38 68
+       C31 68 28 74 27 85 Z"
+    fill="url(#fa-left-fold)"
+  />
+
+  <!-- Crisp Luminous Cyan Specular Highlight on front right embrace -->
+  <path
+    d="M64 60
+       C74 65 86 67 96 63
+       C102 61 105 57 106 52
+       C107 58 106 65 101 70
+       C94 77 82 78 69 73
+       C62 70 60 64 64 60 Z"
+    fill="#6CE2FF"
+    fill-opacity="0.32"
+  />
+</svg>

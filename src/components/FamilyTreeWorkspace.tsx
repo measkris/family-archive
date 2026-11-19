@@ -1,0 +1,808 @@
+'use client';
+
+import React, { useCallback, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+import {
+  Camera,
+  CheckCircle2,
+  ExternalLink,
+  FolderTree,
+  GitBranch,
+  Globe2,
+  Network,
+  Plus,
+  Sparkles,
+  Table2,
+  Users,
+} from 'lucide-react';
+import {
+  DEFAULT_FAMILY_TREE_GROUP,
+  DEFAULT_TREE_ID,
+  type ArchivalSourceRecord,
+  type FamilyMemberRecord,
+  type FamilyTreeGroupRecord,
+  type SpouseRecord,
+} from '@/lib/data/lang-genealogy';
+import type { HeritageOriginRecord } from '@/lib/db/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
+import { FamilyArchiveLogo } from '@/components/ui/FamilyArchiveLogo';
+import {
+  InteractiveFamilyTree,
+  type SelectedTreePerson,
+} from '@/components/tree/InteractiveFamilyTree';
+import { MemberFormDialog } from '@/components/members/MemberFormDialog';
+import { CreateFamilyTreeDialog } from '@/components/trees/CreateFamilyTreeDialog';
+import { cn } from '@/lib/utils';
+
+function TableTabSkeleton() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 space-y-4 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-72" />
+          <Skeleton className="h-4 w-96 max-w-full" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-28" />
+          <Skeleton className="h-9 w-28" />
+        </div>
+      </div>
+      <div className="space-y-3 pt-2">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div
+            key={i}
+            className="grid grid-cols-12 items-center gap-3 py-2.5 border-b border-border/50"
+          >
+            <div className="col-span-3 flex items-center gap-2.5">
+              <Skeleton className="size-10 rounded-full shrink-0" />
+              <div className="space-y-1.5 flex-1">
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+            <Skeleton className="col-span-2 h-5 w-20 rounded-full" />
+            <Skeleton className="col-span-2 h-4 w-28" />
+            <Skeleton className="col-span-2 h-4 w-32" />
+            <Skeleton className="col-span-3 h-4 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="rounded-xl border border-stone-300 bg-[#f6f5f2] overflow-hidden shadow-lg animate-fade-in">
+      <div className="bg-[#484a4c] p-6 space-y-4">
+        <div className="flex items-center gap-5 max-w-5xl mx-auto">
+          <Skeleton className="size-28 rounded-md bg-white/15 shrink-0" />
+          <div className="space-y-2.5 flex-1">
+            <Skeleton className="h-8 w-72 bg-white/15" />
+            <Skeleton className="h-4 w-80 bg-white/15" />
+            <Skeleton className="h-4 w-64 bg-white/15" />
+            <div className="flex gap-2 pt-1">
+              <Skeleton className="h-5 w-24 rounded-full bg-white/20" />
+              <Skeleton className="h-5 w-28 rounded-full bg-white/20" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-6xl mx-auto">
+        <div className="lg:col-span-5 space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          ))}
+        </div>
+        <div className="lg:col-span-3 space-y-2.5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+          ))}
+        </div>
+        <div className="lg:col-span-4 space-y-2.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const AncestryProfileView = dynamic(
+  () => import('@/components/members/AncestryProfileView').then((m) => m.AncestryProfileView),
+  { loading: () => <ProfileSkeleton /> }
+);
+const MembersDirectoryTable = dynamic(
+  () => import('@/components/members/MembersDirectoryTable').then((m) => m.MembersDirectoryTable),
+  { loading: () => <TableTabSkeleton /> }
+);
+const HeritageDataTables = dynamic(
+  () => import('@/components/heritage/HeritageDataTables').then((m) => m.HeritageDataTables),
+  { loading: () => <TableTabSkeleton /> }
+);
+const PhotoArchiveTimeline = dynamic(
+  () => import('@/components/gallery/PhotoArchiveTimeline').then((m) => m.PhotoArchiveTimeline),
+  { loading: () => <TableTabSkeleton /> }
+);
+
+interface FamilyTreeWorkspaceProps {
+  initialMembers: FamilyMemberRecord[];
+  initialFamilyTrees: FamilyTreeGroupRecord[];
+  initialArchivalRecords: ArchivalSourceRecord[];
+  initialHeritageOrigins: HeritageOriginRecord[];
+}
+
+function spouseToProfileRecord(
+  spouse: SpouseRecord,
+  partner: FamilyMemberRecord
+): FamilyMemberRecord {
+  const parts = spouse.name.trim().split(/\s+/);
+  const firstName = parts.slice(0, -1).join(' ') || spouse.name;
+  const lastName = spouse.surname || parts[parts.length - 1] || spouse.name;
+  const birthYearMatch = spouse.birthDate?.match(/\b(1[6-9]\d{2}|20\d{2})\b/);
+  const deathYearMatch = spouse.deathDate?.match(/\b(1[6-9]\d{2}|20\d{2})\b/);
+  const gender: FamilyMemberRecord['gender'] =
+    partner.gender === 'male' ? 'female' : partner.gender === 'female' ? 'male' : 'unknown';
+
+  return {
+    id: `spouse-profile-${spouse.id}`,
+    treeId: partner.treeId || DEFAULT_TREE_ID,
+    code: `${partner.code} · Spouse`,
+    firstName,
+    lastName,
+    fullName: spouse.name,
+    gender,
+    generation: partner.generation,
+    branch: partner.branch,
+    parentId: null,
+    birthDate: spouse.birthDate,
+    birthYear: birthYearMatch ? Number(birthYearMatch[1]) : undefined,
+    birthPlace: spouse.birthPlace,
+    deathDate: spouse.deathDate,
+    deathYear: deathYearMatch ? Number(deathYearMatch[1]) : undefined,
+    deathPlace: spouse.deathPlace,
+    occupation: spouse.occupation,
+    heritageTags: spouse.heritage ? [spouse.heritage] : [],
+    region: spouse.birthPlace || partner.region,
+    photoUrl: spouse.photoUrl,
+    bio:
+      spouse.notes ||
+      `Spouse of ${partner.fullName}${
+        spouse.marriageDate ? `, married ${spouse.marriageDate}` : ''
+      }${spouse.marriagePlace ? ` in ${spouse.marriagePlace}` : ''}.`,
+    spouses: [
+      {
+        id: `partner-${partner.id}`,
+        name: partner.fullName,
+        surname: partner.lastName,
+        marriageOrder: spouse.marriageOrder,
+        marriageDate: spouse.marriageDate,
+        marriagePlace: spouse.marriagePlace,
+        birthDate: partner.birthDate,
+        birthPlace: partner.birthPlace,
+        deathDate: partner.deathDate,
+        deathPlace: partner.deathPlace,
+        occupation: partner.occupation,
+        photoUrl: partner.photoUrl,
+      },
+    ],
+    sources: partner.sources,
+    sourceUrl: partner.sourceUrl,
+  };
+}
+
+const ACCENT_TOP_BAR: Record<NonNullable<FamilyTreeGroupRecord['accentColor']>, string> = {
+  maritime: 'from-[#0b4a68] to-[#29b2ee]',
+  emerald: 'from-[#4d7c0f] to-[#8bc34a]',
+  amber: 'from-amber-700 to-amber-500',
+  rose: 'from-rose-800 to-rose-500',
+};
+
+export function FamilyTreeWorkspace({
+  initialMembers,
+  initialFamilyTrees,
+  initialArchivalRecords,
+  initialHeritageOrigins,
+}: FamilyTreeWorkspaceProps) {
+  const [members, setMembers] = useState<FamilyMemberRecord[]>(initialMembers);
+  const [familyTrees, setFamilyTrees] = useState<FamilyTreeGroupRecord[]>(
+    initialFamilyTrees.length > 0 ? initialFamilyTrees : [DEFAULT_FAMILY_TREE_GROUP]
+  );
+  const [activeTreeId, setActiveTreeId] = useState<string>(
+    initialFamilyTrees[0]?.id || DEFAULT_TREE_ID
+  );
+  const [activeTab, setActiveTab] = useState<string>('tree');
+
+  // Start with NO default selection so the right details panel stays hidden until the user clicks a person
+  const [selectedPerson, setSelectedPerson] = useState<SelectedTreePerson | null>(null);
+  const [profileTarget, setProfileTarget] = useState<SelectedTreePerson | null>(null);
+  const [focusMemberId, setFocusMemberId] = useState<string | null>(null);
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<FamilyMemberRecord | null>(null);
+  const [defaultParent, setDefaultParent] = useState<FamilyMemberRecord | null>(null);
+  const [createTreeOpen, setCreateTreeOpen] = useState(false);
+
+  const activeTree = useMemo(
+    () => familyTrees.find((t) => t.id === activeTreeId) || familyTrees[0] || DEFAULT_FAMILY_TREE_GROUP,
+    [familyTrees, activeTreeId]
+  );
+
+  // Members belonging to the currently selected Family Tree Group
+  const activeTreeMembers = useMemo(
+    () => members.filter((m) => (m.treeId || DEFAULT_TREE_ID) === activeTree.id),
+    [members, activeTree.id]
+  );
+
+  const handleSelectTreeGroup = useCallback((treeId: string) => {
+    setActiveTreeId(treeId);
+    setSelectedPerson(null);
+    setProfileTarget(null);
+    setFocusMemberId(null);
+  }, []);
+
+  // Resolve fresh profile record (for either a primary member or a spouse!)
+  const activeProfileData = useMemo(() => {
+    if (!profileTarget) return null;
+    if (profileTarget.kind === 'member') {
+      const m = members.find((x) => x.id === profileTarget.member.id);
+      if (!m) return null;
+      return { member: m, editTarget: m, parentForChild: m, traceId: m.id };
+    }
+    const partner =
+      members.find((x) => x.id === profileTarget.partner.id) || profileTarget.partner;
+    const freshSpouse =
+      partner.spouses.find((s) => s.id === profileTarget.spouse.id) || profileTarget.spouse;
+    return {
+      member: spouseToProfileRecord(freshSpouse, partner),
+      editTarget: partner,
+      parentForChild: partner,
+      traceId: partner.id,
+    };
+  }, [profileTarget, members]);
+
+  const handleOpenMemberProfile = useCallback((member: FamilyMemberRecord) => {
+    const target: SelectedTreePerson = { kind: 'member', member };
+    setSelectedPerson(target);
+    setProfileTarget(target);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleOpenSpouseProfile = useCallback(
+    (spouse: SpouseRecord, partner: FamilyMemberRecord) => {
+      const target: SelectedTreePerson = { kind: 'spouse', spouse, partner };
+      setSelectedPerson(target);
+      setProfileTarget(target);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
+
+  const handleOpenProfileById = useCallback(
+    (memberId: string) => {
+      const found = members.find((m) => m.id === memberId);
+      if (found) {
+        setActiveTreeId(found.treeId || DEFAULT_TREE_ID);
+        handleOpenMemberProfile(found);
+      }
+    },
+    [members, handleOpenMemberProfile]
+  );
+
+  const handleFocusInTree = useCallback(
+    (memberId: string) => {
+      setProfileTarget(null);
+      setActiveTab('tree');
+      const found = members.find((m) => m.id === memberId);
+      if (found) {
+        setActiveTreeId(found.treeId || DEFAULT_TREE_ID);
+        setSelectedPerson({ kind: 'member', member: found });
+      }
+      setFocusMemberId(memberId);
+    },
+    [members]
+  );
+
+  const handleMemberSaved = useCallback((saved: FamilyMemberRecord) => {
+    setMembers((prev) => {
+      const exists = prev.some((m) => m.id === saved.id);
+      const next = exists
+        ? prev.map((m) => (m.id === saved.id ? saved : m))
+        : [...prev, saved];
+      return next.sort(
+        (a, b) => a.generation - b.generation || (a.birthYear ?? 9999) - (b.birthYear ?? 9999)
+      );
+    });
+    if (saved.treeId) {
+      setActiveTreeId(saved.treeId);
+    }
+    setSelectedPerson((curr) =>
+      curr?.kind === 'member' && curr.member.id === saved.id
+        ? { kind: 'member', member: saved }
+        : curr?.kind === 'spouse' && curr.partner.id === saved.id
+        ? {
+            kind: 'spouse',
+            partner: saved,
+            spouse: saved.spouses.find((s) => s.id === curr.spouse.id) || curr.spouse,
+          }
+        : curr
+    );
+  }, []);
+
+  const handleTreeCreated = useCallback(
+    (tree: FamilyTreeGroupRecord, founderMember: FamilyMemberRecord | null) => {
+      setFamilyTrees((prev) => [...prev.filter((t) => t.id !== tree.id), tree]);
+      if (founderMember) {
+        setMembers((prev) => [...prev, founderMember]);
+      }
+      setActiveTreeId(tree.id);
+      setSelectedPerson(null);
+      setProfileTarget(null);
+      setActiveTab('tree');
+    },
+    []
+  );
+
+  const handleDeleteMember = useCallback(async (member: FamilyMemberRecord) => {
+    const res = await fetch(`/api/members/${encodeURIComponent(member.id)}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      setMembers((prev) => prev.filter((m) => m.id !== member.id));
+      setSelectedPerson((curr) =>
+        curr && (curr.kind === 'member' ? curr.member.id : curr.partner.id) === member.id
+          ? null
+          : curr
+      );
+      setProfileTarget((curr) =>
+        curr && (curr.kind === 'member' ? curr.member.id : curr.partner.id) === member.id
+          ? null
+          : curr
+      );
+    }
+  }, []);
+
+  const featuredAncestors = useMemo(() => {
+    const featured = activeTreeMembers.filter((m) => m.isFeatured);
+    return (featured.length > 0 ? featured : activeTreeMembers).slice(0, 6);
+  }, [activeTreeMembers]);
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Top Site Brand Navigation Bar */}
+      <header className="sticky top-0 z-30 border-b border-stone-200/90 bg-white/95 backdrop-blur-md text-[#182635] shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Brand Logo (transparent, no box) + Title */}
+          <button
+            type="button"
+            onClick={() => {
+              setProfileTarget(null);
+              setActiveTab('tree');
+            }}
+            className="flex items-center gap-2.5 text-left group cursor-pointer"
+          >
+            <FamilyArchiveLogo className="size-10 drop-shadow-[0_1px_2px_rgba(11,74,104,0.12)] group-hover:scale-105 transition-transform" />
+            <div className="leading-tight">
+              <div className="font-heritage text-2xl font-bold tracking-tight text-[#142536] leading-none">
+                Family Archive
+              </div>
+              <div className="text-[11px] font-medium text-[#52697d] tracking-wide mt-0.5">
+                Interactive Genealogy &amp; Heritage
+              </div>
+            </div>
+          </button>
+
+          {/* Right Global Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600">
+              <FolderTree className="size-3.5 text-[#0b4a68]" />
+              <span>
+                {familyTrees.length} {familyTrees.length === 1 ? 'Tree Group' : 'Tree Groups'} ·{' '}
+                {members.length} Records
+              </span>
+            </span>
+
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+              onClick={() => setCreateTreeOpen(true)}
+            >
+              <GitBranch className="size-3.5 text-[#0b4a68]" />
+              <span className="hidden sm:inline">New Family Tree</span>
+              <span className="sm:hidden">New Tree</span>
+            </Button>
+
+            <Button
+              size="sm"
+              className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-9 px-4 shadow-xs"
+              onClick={() => {
+                setEditingMember(null);
+                const parentCandidate =
+                  selectedPerson?.kind === 'member'
+                    ? selectedPerson.member
+                    : selectedPerson?.kind === 'spouse'
+                    ? selectedPerson.partner
+                    : activeTreeMembers[0] || null;
+                setDefaultParent(parentCandidate);
+                setFormOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> Add Member
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Homepage Family Tree Groups Directory & Active Collection Section */}
+      <section className="relative overflow-hidden border-b border-stone-300/80 bg-gradient-to-r from-[#eef5f8] via-[#f6f4ef] to-[#eef5ec]">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 12% 30%, rgba(41,178,238,0.16) 0%, transparent 45%), radial-gradient(circle at 88% 70%, rgba(115,169,34,0.16) 0%, transparent 45%)',
+          }}
+        />
+
+        <div className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 py-4 space-y-3.5">
+          {/* Family Tree Groups Header */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                <FolderTree className="size-3.5 text-[#0b4a68]" /> Family Tree Groups
+              </span>
+              <Badge variant="outline" className="bg-white/80 text-[10px] font-mono">
+                {familyTrees.length} {familyTrees.length === 1 ? 'Collection' : 'Collections'}
+              </Badge>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCreateTreeOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#73a922]/40 bg-white/90 hover:bg-[#f4faea] px-3 py-1 text-xs font-semibold text-[#4d7c0f] shadow-2xs transition-colors cursor-pointer"
+            >
+              <Plus className="size-3.5" /> Add Family Tree Group
+            </button>
+          </div>
+
+          {/* Family Tree Group Cards Strip */}
+          <div className="flex items-stretch gap-3 overflow-x-auto pb-1">
+            {familyTrees.map((tree) => {
+              const isSelected = tree.id === activeTree.id;
+              const treeMembers = members.filter(
+                (m) => (m.treeId || DEFAULT_TREE_ID) === tree.id
+              );
+              const maxGenCount = treeMembers.reduce(
+                (max, m) => Math.max(max, m.generation),
+                0
+              );
+              const previewAvatars = treeMembers.slice(0, 3);
+              const accent = ACCENT_TOP_BAR[tree.accentColor || 'maritime'];
+
+              return (
+                <div
+                  key={tree.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleSelectTreeGroup(tree.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelectTreeGroup(tree.id);
+                    }
+                  }}
+                  className={cn(
+                    'group relative min-w-[305px] max-w-[380px] shrink-0 rounded-xl border bg-white text-left overflow-hidden transition-all cursor-pointer',
+                    isSelected
+                      ? 'border-[#0b4a68] ring-2 ring-[#0b4a68]/20 shadow-md'
+                      : 'border-stone-300/90 hover:border-stone-400 hover:shadow-sm opacity-90 hover:opacity-100'
+                  )}
+                >
+                  <div className={cn('h-1.5 w-full bg-gradient-to-r', accent)} />
+
+                  <div className="p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center -space-x-2">
+                        {previewAvatars.length > 0 ? (
+                          previewAvatars.map((m) => (
+                            <span
+                              key={m.id}
+                              className="size-8 rounded-full overflow-hidden border-2 border-white shadow-xs bg-stone-200"
+                            >
+                              <OptimizedPortrait
+                                src={m.photoUrl}
+                                alt={m.fullName}
+                                gender={m.gender}
+                                width={72}
+                                priority
+                              />
+                            </span>
+                          ))
+                        ) : (
+                          <span className="size-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400">
+                            <GitBranch className="size-4" />
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {isSelected && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#eef7df] border border-[#73a922]/40 px-2 py-0.5 text-[10px] font-bold text-[#3f6212]">
+                            <CheckCircle2 className="size-3 text-[#73a922]" /> Active
+                          </span>
+                        )}
+                        <span className="rounded-full bg-stone-100 px-2 py-0.5 font-mono text-[10px] font-semibold text-stone-600">
+                          {treeMembers.length} {treeMembers.length === 1 ? 'person' : 'people'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h2 className="font-heritage text-xl font-bold leading-snug text-[#1a2634] group-hover:text-[#0b4a68] transition-colors">
+                        {tree.name}
+                      </h2>
+                      <p className="text-[11px] text-stone-600 flex items-center gap-1 mt-0.5 truncate">
+                        <Sparkles className="size-3 text-[#73a922] shrink-0" />
+                        <span className="truncate">{tree.subtitle}</span>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-stone-200/70 text-[11px] text-stone-500">
+                      <span>
+                        {maxGenCount > 0
+                          ? `${maxGenCount} ${maxGenCount === 1 ? 'Generation' : 'Generations'}`
+                          : 'Empty tree · Ready to build'}
+                      </span>
+                      {tree.sourceUrl && (
+                        <a
+                          href={tree.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[#0b4a68] hover:underline font-medium truncate max-w-[165px]"
+                        >
+                          {tree.sourceLabel || 'Source'} <ExternalLink className="size-2.5 shrink-0" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Add More Family Tree Group Card */}
+            <button
+              type="button"
+              onClick={() => setCreateTreeOpen(true)}
+              className="group min-w-[215px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
+            >
+              <span className="flex size-10 items-center justify-center rounded-full bg-[#eef7df] text-[#4d7c0f] group-hover:bg-[#73a922] group-hover:text-white transition-colors">
+                <Plus className="size-5" />
+              </span>
+              <div>
+                <div className="text-xs font-bold text-stone-800 group-hover:text-[#365314]">
+                  Add Family Tree Group
+                </div>
+                <div className="text-[11px] text-stone-500 mt-0.5">
+                  Start another family lineage
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* Key Ancestors Ribbon for Active Family Tree Group */}
+          {featuredAncestors.length > 0 && (
+            <div className="pt-2 border-t border-stone-300/70 flex items-center gap-2 overflow-x-auto pb-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 shrink-0 mr-1">
+                Key Ancestors ({activeTree.name.split(' ')[0]}):
+              </span>
+              {featuredAncestors.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => handleOpenMemberProfile(m)}
+                  className="inline-flex items-center gap-2 rounded-full border border-stone-300/90 bg-white hover:border-[#29b2ee] hover:shadow-xs pl-1 pr-3 py-0.5 text-xs text-stone-800 transition-all shrink-0 cursor-pointer"
+                >
+                  <span className="size-6 rounded-full overflow-hidden border border-[#29b2ee]/50 shrink-0">
+                    <OptimizedPortrait
+                      src={m.photoUrl}
+                      alt={m.fullName}
+                      gender={m.gender}
+                      width={64}
+                      priority
+                    />
+                  </span>
+                  <span className="font-semibold">{m.fullName}</span>
+                  <span className="font-mono text-[10px] text-[#0b4a68]">{m.code}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Main Interactive Workspace */}
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 sm:px-6 lg:px-8 py-5">
+        {activeProfileData ? (
+          <AncestryProfileView
+            member={activeProfileData.member}
+            allMembers={activeTreeMembers}
+            archivalRecords={initialArchivalRecords}
+            heritageOrigins={initialHeritageOrigins}
+            onBackToTree={() => setProfileTarget(null)}
+            onSelectProfile={handleOpenMemberProfile}
+            onTraceInTree={() => handleFocusInTree(activeProfileData.traceId)}
+            onEditMember={() => {
+              setEditingMember(activeProfileData.editTarget);
+              setDefaultParent(null);
+              setFormOpen(true);
+            }}
+            onAddChild={() => {
+              setEditingMember(null);
+              setDefaultParent(activeProfileData.parentForChild);
+              setFormOpen(true);
+            }}
+            onDeleteMember={handleDeleteMember}
+            onPhotoUpdated={handleMemberSaved}
+          />
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <TabsList className="h-auto p-1 flex-wrap justify-start">
+                <TabsTrigger value="tree" className="py-2 px-4">
+                  <Network className="size-4 text-[#73a922]" />
+                  Family Tree Chart
+                  <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
+                    {activeTreeMembers.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="heritage" className="py-2 px-4">
+                  <Globe2 className="size-4 text-emerald-700" />
+                  Heritage &amp; Live Data APIs
+                </TabsTrigger>
+                <TabsTrigger value="directory" className="py-2 px-4">
+                  <Table2 className="size-4 text-amber-700" />
+                  Members Table
+                </TabsTrigger>
+                <TabsTrigger value="gallery" className="py-2 px-4">
+                  <Camera className="size-4 text-rose-700" />
+                  Photo Archive &amp; Timeline
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Users className="size-3.5 text-[#73a922]" />
+                <span>
+                  Viewing <strong>{activeTree.name}</strong> · Click any card to inspect
+                </span>
+              </div>
+            </div>
+
+            <TabsContent value="tree" className="mt-0">
+              {activeTreeMembers.length > 0 ? (
+                <InteractiveFamilyTree
+                  key={activeTree.id}
+                  treeName={activeTree.name}
+                  members={activeTreeMembers}
+                  selectedPerson={selectedPerson}
+                  focusMemberId={focusMemberId}
+                  onSelectPerson={setSelectedPerson}
+                  onOpenMemberProfile={handleOpenMemberProfile}
+                  onOpenSpouseProfile={handleOpenSpouseProfile}
+                  onEditMember={(m) => {
+                    setEditingMember(m);
+                    setDefaultParent(null);
+                    setFormOpen(true);
+                  }}
+                  onAddChild={(parent) => {
+                    setEditingMember(null);
+                    setDefaultParent(parent);
+                    setFormOpen(true);
+                  }}
+                  onPhotoUpdated={handleMemberSaved}
+                  onClearFocus={() => setFocusMemberId(null)}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-stone-700/40 bg-[#494b4d] text-white min-h-[460px] p-8 text-center space-y-4">
+                  <span className="flex size-16 items-center justify-center rounded-full bg-white/10 border border-white/20">
+                    <GitBranch className="size-8 text-[#8bc34a]" />
+                  </span>
+                  <div className="space-y-1 max-w-md">
+                    <h2 className="font-heritage text-3xl font-bold">{activeTree.name}</h2>
+                    <p className="text-sm text-stone-300">
+                      This family tree group has no ancestors yet. Add your first founding ancestor
+                      to start building the interactive chart.
+                    </p>
+                  </div>
+                  <Button
+                    className="bg-[#73a922] hover:bg-[#62911b] text-white font-semibold"
+                    onClick={() => {
+                      setEditingMember(null);
+                      setDefaultParent(null);
+                      setFormOpen(true);
+                    }}
+                  >
+                    <Plus className="size-4" /> Add Founding Ancestor
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="heritage" className="mt-0">
+              <HeritageDataTables
+                initialOrigins={initialHeritageOrigins}
+                archivalRecords={initialArchivalRecords}
+                members={members}
+                onSelectMemberById={handleOpenProfileById}
+              />
+            </TabsContent>
+
+            <TabsContent value="directory" className="mt-0">
+              <MembersDirectoryTable
+                members={activeTreeMembers}
+                onSelectMember={handleOpenMemberProfile}
+                onFocusInTree={handleFocusInTree}
+                onAddNew={() => {
+                  setEditingMember(null);
+                  setDefaultParent(activeTreeMembers[0] || null);
+                  setFormOpen(true);
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="gallery" className="mt-0">
+              <PhotoArchiveTimeline
+                members={activeTreeMembers}
+                archivalRecords={initialArchivalRecords}
+                onSelectMember={handleOpenMemberProfile}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card/70 py-4 text-center text-xs text-muted-foreground">
+        <div className="mx-auto max-w-[1440px] px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-2">
+            <FamilyArchiveLogo className="size-5" />
+            <span>
+              <strong>Family Archive</strong> · Multi-Family Genealogy &amp; Heritage Platform
+            </span>
+          </span>
+          <span className="font-medium text-stone-600">
+            Family Archive<sup className="text-[9px] ml-0.5">™</sup> · © {new Date().getFullYear()}{' '}
+            Family Archive. All rights reserved.
+          </span>
+        </div>
+      </footer>
+
+      {/* Add / Edit Member Dialog */}
+      <MemberFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        editingMember={editingMember}
+        defaultParent={defaultParent}
+        activeTreeId={activeTree.id}
+        familyTrees={familyTrees}
+        allMembers={members}
+        onSaved={handleMemberSaved}
+        onRequestCreateTree={() => {
+          setCreateTreeOpen(true);
+        }}
+      />
+
+      {/* Create New Family Tree Group Dialog */}
+      <CreateFamilyTreeDialog
+        open={createTreeOpen}
+        onOpenChange={setCreateTreeOpen}
+        onCreated={handleTreeCreated}
+      />
+    </div>
+  );
+}
