@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -37,8 +38,11 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function syncServerSession(fbUser: User): Promise<AuthUser> {
-  const idToken = await fbUser.getIdToken(true);
+async function syncServerSession(
+  fbUser: User,
+  forceRefresh = false
+): Promise<{ user: AuthUser; idToken: string }> {
+  const idToken = await fbUser.getIdToken(forceRefresh);
   const res = await fetch('/api/auth/session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -48,7 +52,19 @@ async function syncServerSession(fbUser: User): Promise<AuthUser> {
   if (!res.ok || !data.user) {
     throw new Error(data.error || 'Failed to verify authentication session.');
   }
-  return data.user;
+  return { user: data.user, idToken };
+}
+
+function buildFallbackUser(fbUser: User, prev: AuthUser | null): AuthUser {
+  const sameUser = prev && prev.uid === fbUser.uid;
+  return {
+    uid: fbUser.uid,
+    email: (fbUser.email || prev?.email || '').trim().toLowerCase(),
+    displayName: fbUser.displayName?.trim() || prev?.displayName,
+    photoUrl: fbUser.photoURL?.trim() || prev?.photoUrl,
+    emailVerified: fbUser.emailVerified,
+    isSuperAdmin: sameUser ? prev.isSuperAdmin : false,
+  };
 }
 
 export function AuthProvider({
@@ -67,6 +83,44 @@ export function AuthProvider({
   const auth = useMemo(() => getFirebaseClientAuth(firebaseConfig), [firebaseConfig]);
   const [loading, setLoading] = useState<boolean>(Boolean(auth));
 
+  const onSessionChangedRef = useRef(onSessionChanged);
+  const userRef = useRef<AuthUser | null>(initialUser);
+  const lastSyncedTokenRef = useRef<string>('');
+  const syncInFlightRef = useRef<Promise<AuthUser | null> | null>(null);
+
+  useEffect(() => {
+    onSessionChangedRef.current = onSessionChanged;
+  }, [onSessionChanged]);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  const performSessionSync = useCallback(
+    async (nextFbUser: User, forceRefresh = false): Promise<AuthUser | null> => {
+      try {
+        const token = await nextFbUser.getIdToken(forceRefresh);
+        if (!forceRefresh && token === lastSyncedTokenRef.current && userRef.current?.uid === nextFbUser.uid) {
+          return userRef.current;
+        }
+        const { user: verifiedUser, idToken } = await syncServerSession(nextFbUser, false);
+        lastSyncedTokenRef.current = idToken;
+        const changedUid = userRef.current?.uid !== verifiedUser.uid;
+        setUser(verifiedUser);
+        if (changedUid) {
+          onSessionChangedRef.current?.(verifiedUser);
+        }
+        return verifiedUser;
+      } catch {
+        // Keep user signed in locally on transient network/API glitches instead of logging them out
+        const fallback = buildFallbackUser(nextFbUser, userRef.current);
+        setUser(fallback);
+        return fallback;
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     if (!auth) {
       return;
@@ -75,10 +129,8 @@ export function AuthProvider({
     getRedirectResult(auth)
       .then(async (cred) => {
         if (!cred?.user) return;
-        const verified = await syncServerSession(cred.user);
         setFbUser(cred.user);
-        setUser(verified);
-        onSessionChanged?.(verified);
+        await performSessionSync(cred.user, false);
       })
       .catch(() => {
         // Ignore empty or cancelled redirect attempts
@@ -87,45 +139,57 @@ export function AuthProvider({
     const unsubscribe = onIdTokenChanged(auth, async (nextFbUser) => {
       setFbUser(nextFbUser);
       if (!nextFbUser) {
+        lastSyncedTokenRef.current = '';
         try {
           await fetch('/api/auth/session', { method: 'DELETE' });
         } catch {
           // ignore cleanup failure
         }
-        setUser((prev) => {
-          if (prev !== null) onSessionChanged?.(null);
-          return null;
-        });
+        if (userRef.current !== null) {
+          setUser(null);
+          onSessionChangedRef.current?.(null);
+        } else {
+          setUser(null);
+        }
         setLoading(false);
         return;
       }
 
-      try {
-        const verifiedUser = await syncServerSession(nextFbUser);
-        setUser(verifiedUser);
-        onSessionChanged?.(verifiedUser);
-      } catch {
-        // Fallback minimal client info if offline; API routes will still enforce token
-        setUser(null);
-      } finally {
-        setLoading(false);
+      if (!syncInFlightRef.current) {
+        syncInFlightRef.current = performSessionSync(nextFbUser, false).finally(() => {
+          syncInFlightRef.current = null;
+          setLoading(false);
+        });
       }
+      await syncInFlightRef.current;
     });
 
-    return () => unsubscribe();
-  }, [auth, onSessionChanged]);
+    // Proactively refresh the session cookie every 45 minutes so idle tabs stay signed in
+    const keepaliveTimer = setInterval(async () => {
+      const current = auth.currentUser;
+      if (current) {
+        await performSessionSync(current, true);
+      }
+    }, 45 * 60 * 1000);
+
+    return () => {
+      clearInterval(keepaliveTimer);
+      unsubscribe();
+    };
+  }, [auth, performSessionSync]);
 
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
       if (!auth) throw new Error('Firebase Authentication is not configured.');
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const verified = await syncServerSession(cred.user);
+      const { user: verified, idToken } = await syncServerSession(cred.user, false);
+      lastSyncedTokenRef.current = idToken;
       setFbUser(cred.user);
       setUser(verified);
-      onSessionChanged?.(verified);
+      onSessionChangedRef.current?.(verified);
       return verified;
     },
-    [auth, onSessionChanged]
+    [auth]
   );
 
   const registerWithEmail = useCallback(
@@ -135,25 +199,27 @@ export function AuthProvider({
       if (displayName.trim()) {
         await updateProfile(cred.user, { displayName: displayName.trim() });
       }
-      const verified = await syncServerSession(cred.user);
+      const { user: verified, idToken } = await syncServerSession(cred.user, true);
+      lastSyncedTokenRef.current = idToken;
       setFbUser(cred.user);
       setUser(verified);
-      onSessionChanged?.(verified);
+      onSessionChangedRef.current?.(verified);
       return verified;
     },
-    [auth, onSessionChanged]
+    [auth]
   );
 
   const signInWithGoogle = useCallback(async () => {
     if (!auth) throw new Error('Firebase Authentication is not configured.');
     const provider = getGoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
-    const verified = await syncServerSession(cred.user);
+    const { user: verified, idToken } = await syncServerSession(cred.user, false);
+    lastSyncedTokenRef.current = idToken;
     setFbUser(cred.user);
     setUser(verified);
-    onSessionChanged?.(verified);
+    onSessionChangedRef.current?.(verified);
     return verified;
-  }, [auth, onSessionChanged]);
+  }, [auth]);
 
   const signInWithGoogleRedirect = useCallback(async () => {
     if (!auth) throw new Error('Firebase Authentication is not configured.');
@@ -162,14 +228,15 @@ export function AuthProvider({
   }, [auth]);
 
   const signOut = useCallback(async () => {
+    lastSyncedTokenRef.current = '';
     if (auth) {
       await firebaseSignOut(auth);
     }
     await fetch('/api/auth/session', { method: 'DELETE' });
     setFbUser(null);
     setUser(null);
-    onSessionChanged?.(null);
-  }, [auth, onSessionChanged]);
+    onSessionChangedRef.current?.(null);
+  }, [auth]);
 
   const getIdToken = useCallback(async () => {
     const activeFbUser = auth?.currentUser || fbUser;

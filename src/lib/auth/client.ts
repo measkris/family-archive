@@ -1,7 +1,13 @@
 'use client';
 
 import { getApps, initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
+import {
+  browserLocalPersistence,
+  getAuth,
+  GoogleAuthProvider,
+  setPersistence,
+  type Auth,
+} from 'firebase/auth';
 import type { PublicFirebaseConfig } from './types';
 
 let clientApp: FirebaseApp | null = null;
@@ -18,6 +24,8 @@ export function getFirebaseClientAuth(config: PublicFirebaseConfig | null): Auth
   }
   if (!clientAuth) {
     clientAuth = getAuth(clientApp);
+    // Keep user signed in persistently across reloads and tabs
+    setPersistence(clientAuth, browserLocalPersistence).catch(() => {});
   }
   return clientAuth;
 }
