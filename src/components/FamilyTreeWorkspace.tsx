@@ -671,7 +671,7 @@ function FamilyTreeWorkspaceInner({
               )}
             </div>
 
-            {user ? (
+            {user && (
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -688,14 +688,6 @@ function FamilyTreeWorkspaceInner({
                   <Plus className="size-3.5" /> Add Family Tree Group
                 </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAuthDialogOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#0b4a68]/35 bg-white/90 hover:bg-sky-50 px-3 py-1 text-xs font-semibold text-[#0b4a68] shadow-2xs transition-colors cursor-pointer"
-              >
-                <LogIn className="size-3.5" /> Sign in to build or edit your own tree
-              </button>
             )}
           </div>
 
