@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/auth/server';
+import { canEditTree, normalizeEmail } from '@/lib/auth/permissions';
 import { finalizeDraftsForTree, type ParsedMemberDraft } from '@/lib/import/tree-parser';
 import type { FamilyTreeGroupRecord } from '@/lib/data/lang-genealogy';
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Please sign in to bulk import family tree data.' },
+        { status: 401 }
+      );
+    }
+
     const body = (await request.json()) as {
       mode: 'existing' | 'new';
       treeId?: string;
@@ -14,6 +24,7 @@ export async function POST(request: NextRequest) {
         region?: string;
         sourceUrl?: string;
         accentColor?: FamilyTreeGroupRecord['accentColor'];
+        visibility?: 'public' | 'private';
       };
       drafts: ParsedMemberDraft[];
     };
@@ -54,10 +65,20 @@ export async function POST(request: NextRequest) {
         sourceUrl: body.newTree?.sourceUrl?.trim() || undefined,
         accentColor: body.newTree?.accentColor || 'emerald',
         createdAt: new Date().toISOString(),
+        ownerId: user.uid,
+        ownerEmail: normalizeEmail(user.email),
+        visibility: body.newTree?.visibility === 'private' ? 'private' : 'public',
+        collaborators: [],
       });
     } else {
       const trees = await db.getFamilyTrees();
       targetTree = trees.find((t) => t.id === body.treeId) || trees[0];
+      if (targetTree && !canEditTree(targetTree, user)) {
+        return NextResponse.json(
+          { error: 'You do not have permission to import into this family tree.' },
+          { status: 403 }
+        );
+      }
     }
 
     if (!targetTree) {

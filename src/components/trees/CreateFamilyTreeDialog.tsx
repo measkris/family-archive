@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GitBranch, Loader2, Sparkles, Upload } from 'lucide-react';
+import { GitBranch, Globe2, Loader2, Lock, Sparkles, Upload } from 'lucide-react';
 import type {
   FamilyMemberRecord,
   FamilyTreeGroupRecord,
@@ -17,7 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/primitives';
-import { PersonAvatarIllustration } from '@/components/ui/PersonAvatarIllustration';
+import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
+import { useAuth } from '@/components/auth/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface CreateFamilyTreeDialogProps {
@@ -42,11 +43,13 @@ export function CreateFamilyTreeDialog({
   onOpenChange,
   onCreated,
 }: CreateFamilyTreeDialogProps) {
+  const { authFetch } = useAuth();
   const [name, setName] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [region, setRegion] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [description, setDescription] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [accentColor, setAccentColor] =
     useState<NonNullable<FamilyTreeGroupRecord['accentColor']>>('emerald');
 
@@ -66,6 +69,7 @@ export function CreateFamilyTreeDialog({
     setRegion('');
     setSourceUrl('');
     setDescription('');
+    setVisibility('public');
     setAccentColor('emerald');
     setFounderFirstName('');
     setFounderLastName('');
@@ -82,7 +86,7 @@ export function CreateFamilyTreeDialog({
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const res = await authFetch('/api/upload', { method: 'POST', body: fd });
       const json = await res.json();
       if (res.ok && json.url) {
         setFounderPhotoUrl(json.url);
@@ -104,7 +108,7 @@ export function CreateFamilyTreeDialog({
         ? cleanSourceUrl.replace(/^https?:\/\/(www\.)?/i, '').slice(0, 42)
         : undefined;
 
-      const res = await fetch('/api/trees', {
+      const res = await authFetch('/api/trees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,6 +118,7 @@ export function CreateFamilyTreeDialog({
           description: description.trim(),
           sourceLabel,
           sourceUrl: cleanSourceUrl || undefined,
+          visibility,
           accentColor,
           founder:
             founderFirstName.trim() && founderLastName.trim()
@@ -235,6 +240,39 @@ export function CreateFamilyTreeDialog({
             />
           </div>
 
+          {/* Tree Visibility Selector */}
+          <div className="space-y-1.5">
+            <Label>Access &amp; Visibility</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setVisibility('public')}
+                className={cn(
+                  'flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs transition-all cursor-pointer',
+                  visibility === 'public'
+                    ? 'border-[#73a922] bg-[#f4faea] text-stone-900 font-semibold'
+                    : 'border-border bg-background text-muted-foreground'
+                )}
+              >
+                <Globe2 className="size-4 shrink-0 text-[#4d7c0f]" />
+                <span>Public Read-Only (viewable by everyone, editable only by you &amp; collaborators)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility('private')}
+                className={cn(
+                  'flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs transition-all cursor-pointer',
+                  visibility === 'private'
+                    ? 'border-[#0b4a68] bg-sky-50 text-stone-900 font-semibold'
+                    : 'border-border bg-background text-muted-foreground'
+                )}
+              >
+                <Lock className="size-4 shrink-0 text-[#0b4a68]" />
+                <span>Private (visible &amp; editable only when signed in by you &amp; collaborators)</span>
+              </button>
+            </div>
+          </div>
+
           {/* Optional Founding Ancestor Card with Portrait + Gender Toggle */}
           <div className="rounded-xl border border-border bg-secondary/40 p-3.5 space-y-3">
             <div className="flex items-center justify-between">
@@ -249,15 +287,13 @@ export function CreateFamilyTreeDialog({
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
               <div className="size-16 rounded-full overflow-hidden border border-border shrink-0 bg-stone-200">
-                {founderPhotoUrl ? (
-                  <img
-                    src={founderPhotoUrl}
-                    alt="Founder preview"
-                    className="size-full object-cover object-top"
-                  />
-                ) : (
-                  <PersonAvatarIllustration gender={founderGender} />
-                )}
+                <OptimizedPortrait
+                  src={founderPhotoUrl}
+                  alt={founderFirstName ? `${founderFirstName} ${founderLastName}` : 'Founder preview'}
+                  gender={founderGender}
+                  width={128}
+                  priority
+                />
               </div>
 
               <div className="flex-1 w-full space-y-2">

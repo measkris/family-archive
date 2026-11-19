@@ -14,7 +14,7 @@ import {
 import type { FamilyMemberRecord } from '@/lib/data/lang-genealogy';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PersonAvatarIllustration } from '@/components/ui/PersonAvatarIllustration';
+import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -35,6 +35,7 @@ import {
 
 interface MembersDirectoryTableProps {
   members: FamilyMemberRecord[];
+  canEdit?: boolean;
   onSelectMember: (member: FamilyMemberRecord) => void;
   onFocusInTree: (memberId: string) => void;
   onAddNew: () => void;
@@ -42,6 +43,7 @@ interface MembersDirectoryTableProps {
 
 export function MembersDirectoryTable({
   members,
+  canEdit = true,
   onSelectMember,
   onFocusInTree,
   onAddNew,
@@ -144,9 +146,11 @@ export function MembersDirectoryTable({
             <Button variant="outline" size="sm" onClick={exportCsv}>
               <Download className="size-4" /> Export CSV
             </Button>
-            <Button size="sm" onClick={onAddNew}>
-              <Plus className="size-4" /> Add Member
-            </Button>
+            {canEdit && (
+              <Button size="sm" onClick={onAddNew}>
+                <Plus className="size-4" /> Add Member
+              </Button>
+            )}
           </div>
         </div>
 
@@ -232,17 +236,15 @@ export function MembersDirectoryTable({
               <TableRow key={m.id} className="group">
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    {m.photoUrl ? (
-                      <img
+                    <div className="size-10 rounded-full overflow-hidden border border-amber-700/35 shrink-0 bg-stone-200">
+                      <OptimizedPortrait
                         src={m.photoUrl}
                         alt={m.fullName}
-                        className="size-10 rounded-full object-cover object-top border border-amber-700/35 shrink-0"
+                        gender={m.gender}
+                        width={80}
+                        priority
                       />
-                    ) : (
-                      <div className="size-10 rounded-full overflow-hidden border border-stone-300 shrink-0">
-                        <PersonAvatarIllustration gender={m.gender} />
-                      </div>
-                    )}
+                    </div>
                     <div className="min-w-0">
                       <button
                         type="button"

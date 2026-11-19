@@ -1,11 +1,15 @@
 import React, { Suspense } from "react";
 import { FirestoreSetupError, getDatabase } from "@/lib/db";
+import { getAuthenticatedUser, getPublicFirebaseWebConfig } from "@/lib/auth/server";
+import { canViewTree } from "@/lib/auth/permissions";
+import type { AuthUser, PublicFirebaseConfig } from "@/lib/auth/types";
 import { FamilyTreeWorkspace } from "@/components/FamilyTreeWorkspace";
 import { WorkspaceSkeleton } from "@/components/WorkspaceSkeleton";
-import type {
-  ArchivalSourceRecord,
-  FamilyMemberRecord,
-  FamilyTreeGroupRecord,
+import {
+  DEFAULT_TREE_ID,
+  type ArchivalSourceRecord,
+  type FamilyMemberRecord,
+  type FamilyTreeGroupRecord,
 } from "@/lib/data/lang-genealogy";
 import type { HeritageOriginRecord } from "@/lib/db/types";
 
@@ -14,6 +18,8 @@ export const dynamic = "force-dynamic";
 async function loadArchiveData(): Promise<
   | {
       ok: true;
+      user: AuthUser | null;
+      firebaseConfig: PublicFirebaseConfig | null;
       members: FamilyMemberRecord[];
       familyTrees: FamilyTreeGroupRecord[];
       archivalRecords: ArchivalSourceRecord[];
@@ -28,14 +34,30 @@ async function loadArchiveData(): Promise<
   const db = getDatabase();
   try {
     await db.ensureSeeded();
-    const [members, familyTrees, archivalRecords, heritageOrigins] =
+    const [user, allMembers, allFamilyTrees, archivalRecords, heritageOrigins] =
       await Promise.all([
+        getAuthenticatedUser(),
         db.getAllMembers(),
         db.getFamilyTrees(),
         db.getArchivalRecords(),
         db.getHeritageOrigins(),
       ]);
-    return { ok: true, members, familyTrees, archivalRecords, heritageOrigins };
+
+    const familyTrees = allFamilyTrees.filter((t) => canViewTree(t, user));
+    const viewableTreeIds = new Set(familyTrees.map((t) => t.id));
+    const members = allMembers.filter((m) =>
+      viewableTreeIds.has(m.treeId || DEFAULT_TREE_ID)
+    );
+
+    return {
+      ok: true,
+      user,
+      firebaseConfig: getPublicFirebaseWebConfig(),
+      members,
+      familyTrees,
+      archivalRecords,
+      heritageOrigins,
+    };
   } catch (err) {
     const isSetupErr = err instanceof FirestoreSetupError;
     const projectId = isSetupErr
@@ -95,6 +117,8 @@ async function FamilyArchiveLoader() {
 
   return (
     <FamilyTreeWorkspace
+      initialUser={result.user}
+      firebaseConfig={result.firebaseConfig}
       initialMembers={result.members}
       initialFamilyTrees={result.familyTrees}
       initialArchivalRecords={result.archivalRecords}

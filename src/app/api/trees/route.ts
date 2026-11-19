@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/auth/server';
+import { canViewTree, normalizeEmail } from '@/lib/auth/permissions';
 import type { FamilyMemberRecord, FamilyTreeGroupRecord } from '@/lib/data/lang-genealogy';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const db = getDatabase();
-    const trees = await db.getFamilyTrees();
+    const [db, user] = await Promise.all([
+      Promise.resolve(getDatabase()),
+      getAuthenticatedUser(request),
+    ]);
+    const allTrees = await db.getFamilyTrees();
+    const trees = allTrees.filter((t) => canViewTree(t, user));
     return NextResponse.json({ trees, count: trees.length });
   } catch (error) {
     console.error('GET /api/trees error:', error);
@@ -15,6 +21,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Please sign in to create a family tree group.' },
+        { status: 401 }
+      );
+    }
+
     const body = (await request.json()) as {
       name?: string;
       subtitle?: string;
@@ -23,6 +37,7 @@ export async function POST(request: NextRequest) {
       sourceLabel?: string;
       sourceUrl?: string;
       accentColor?: FamilyTreeGroupRecord['accentColor'];
+      visibility?: 'public' | 'private';
       founder?: {
         firstName?: string;
         lastName?: string;
@@ -57,6 +72,10 @@ export async function POST(request: NextRequest) {
       sourceUrl: body.sourceUrl?.trim() || undefined,
       accentColor: body.accentColor || 'emerald',
       createdAt: new Date().toISOString(),
+      ownerId: user.uid,
+      ownerEmail: normalizeEmail(user.email),
+      visibility: body.visibility === 'private' ? 'private' : 'public',
+      collaborators: [],
     };
 
     const savedTree = await db.upsertFamilyTree(tree);

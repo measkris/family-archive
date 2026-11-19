@@ -6,19 +6,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 /**
- * Rewrites Cloudinary upload URLs to serve fast edge-resized AVIF/WebP images
- * (f_auto,q_auto,c_fill,g_face) — typically 20-40x smaller than raw JPEGs.
+ * Normalizes portrait URLs (trims whitespace, adds leading slash for local images/)
+ * and rewrites Cloudinary upload URLs to serve fast edge-resized AVIF/WebP images
+ * (f_auto,q_auto,c_fill,g_face).
  */
 export function getOptimizedImageUrl(url: string, width = 320): string {
-  if (!url) return url;
-  if (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
-    if (url.includes('/image/upload/f_auto')) return url;
-    return url.replace(
+  const trimmed = (url || '').trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('images/')) {
+    return `/${trimmed}`;
+  }
+  if (trimmed.includes('res.cloudinary.com') && trimmed.includes('/image/upload/')) {
+    if (trimmed.includes('/image/upload/f_auto')) return trimmed;
+    return trimmed.replace(
       '/image/upload/',
       `/image/upload/f_auto,q_auto,c_fill,g_face,w_${width},h_${width}/`
     );
   }
-  return url;
+  return trimmed;
 }
 
 interface OptimizedPortraitProps {
@@ -41,11 +46,16 @@ export function OptimizedPortrait({
   priority = false,
 }: OptimizedPortraitProps) {
   const optimizedSrc = src ? getOptimizedImageUrl(src, width) : '';
+  const isLocalOrData =
+    optimizedSrc.startsWith('/') ||
+    optimizedSrc.startsWith('data:') ||
+    optimizedSrc.startsWith('blob:');
+
   const [loadedSrc, setLoadedSrc] = useState<string>('');
   const [erroredSrc, setErroredSrc] = useState<string>('');
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Handle cached / SSR-preloaded images where onLoad fired before React hydrated
+  // Handle cached / SSR-preloaded / portal-mounted images where onLoad fired early
   useEffect(() => {
     const img = imgRef.current;
     if (img && img.complete && img.naturalWidth > 0 && optimizedSrc) {
@@ -61,7 +71,7 @@ export function OptimizedPortrait({
     );
   }
 
-  const isLoaded = loadedSrc === optimizedSrc;
+  const isLoaded = isLocalOrData || loadedSrc === optimizedSrc;
 
   return (
     <div className={cn('relative size-full overflow-hidden bg-stone-200', className)}>
@@ -70,12 +80,12 @@ export function OptimizedPortrait({
         ref={imgRef}
         src={optimizedSrc}
         alt={alt}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority || isLocalOrData ? 'eager' : 'lazy'}
         decoding="async"
         onLoad={() => setLoadedSrc(optimizedSrc)}
         onError={() => setErroredSrc(optimizedSrc)}
         className={cn(
-          'size-full object-cover object-top transition-opacity duration-300',
+          'size-full object-cover object-top transition-opacity duration-200',
           isLoaded ? 'opacity-100' : 'opacity-0',
           imgClassName
         )}

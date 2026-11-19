@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudinaryConfig, uploadImageToCloudinary } from '@/lib/cloudinary';
+import { getAuthenticatedUser } from '@/lib/auth/server';
 
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB Cloudinary free tier image limit
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required to upload portraits.' },
+        { status: 401 }
+      );
+    }
     if (!getCloudinaryConfig()) {
       return NextResponse.json(
         {

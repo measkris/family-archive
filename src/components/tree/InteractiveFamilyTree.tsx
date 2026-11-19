@@ -45,6 +45,7 @@ import type { FamilyMemberRecord, SpouseRecord } from '@/lib/data/lang-genealogy
 import { AncestryCoupleNode, type AncestryNodeData } from './AncestryCoupleNode';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { PersonAvatarIllustration } from '@/components/ui/PersonAvatarIllustration';
+import { useAuth } from '@/components/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -64,6 +65,7 @@ export type SelectedTreePerson =
 interface InteractiveFamilyTreeProps {
   treeName?: string;
   members: FamilyMemberRecord[];
+  canEdit?: boolean;
   selectedPerson: SelectedTreePerson | null;
   focusMemberId: string | null;
   onSelectPerson: (person: SelectedTreePerson | null) => void;
@@ -281,6 +283,7 @@ function EmptyDataNote({ text }: { text: string }) {
 function AncestryTreeCanvasInner({
   treeName = 'Jacob Lang & Maria Tampemawa Family',
   members,
+  canEdit = true,
   selectedPerson,
   focusMemberId,
   onSelectPerson,
@@ -291,6 +294,7 @@ function AncestryTreeCanvasInner({
   onPhotoUpdated,
   onClearFocus,
 }: InteractiveFamilyTreeProps) {
+  const { authFetch } = useAuth();
   const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
   const [direction, setDirection] = useState<'TB' | 'LR'>('TB');
   const [branchFilter, setBranchFilter] = useState<string>('all');
@@ -461,12 +465,12 @@ function AncestryTreeCanvasInner({
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const up = await fetch('/api/upload', { method: 'POST', body: fd });
+      const up = await authFetch('/api/upload', { method: 'POST', body: fd });
       const uj = await up.json();
       if (!up.ok || !uj.url) throw new Error(uj.error || 'Upload failed');
 
       if (selectedPerson.kind === 'member') {
-        const patch = await fetch(
+        const patch = await authFetch(
           `/api/members/${encodeURIComponent(selectedPerson.member.id)}`,
           {
             method: 'PATCH',
@@ -484,7 +488,7 @@ function AncestryTreeCanvasInner({
         const updatedSpouses = selectedPerson.partner.spouses.map((s) =>
           s.id === selectedPerson.spouse.id ? { ...s, photoUrl: uj.url } : s
         );
-        const patch = await fetch(
+        const patch = await authFetch(
           `/api/members/${encodeURIComponent(selectedPerson.partner.id)}`,
           {
             method: 'PATCH',
@@ -873,26 +877,30 @@ function AncestryTreeCanvasInner({
                     priority
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingPhoto}
-                  title="Upload portrait photo"
-                  className="absolute -bottom-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full bg-[#2e3032] text-white shadow hover:bg-black cursor-pointer"
-                >
-                  {uploadingPhoto ? (
-                    <Loader2 className="size-3 animate-spin" />
-                  ) : (
-                    <Camera className="size-3" />
-                  )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleQuickPhotoUpload}
-                />
+                {canEdit && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      title="Upload portrait photo"
+                      className="absolute -bottom-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full bg-[#2e3032] text-white shadow hover:bg-black cursor-pointer"
+                    >
+                      {uploadingPhoto ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Camera className="size-3" />
+                      )}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleQuickPhotoUpload}
+                    />
+                  </>
+                )}
               </div>
 
               <div className="min-w-0 flex-1">
@@ -925,24 +933,28 @@ function AncestryTreeCanvasInner({
               >
                 <UserCheck className="size-3.5" /> Full Profile
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 px-2.5 text-xs"
-                onClick={() => onEditMember(inspector.memberRef)}
-                title={inspector.kind === 'spouse' ? 'Edit couple record' : 'Edit person'}
-              >
-                <Pencil className="size-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 px-2.5 text-xs"
-                onClick={() => onAddChild(inspector.memberRef)}
-                title="Add child"
-              >
-                <Plus className="size-3.5" />
-              </Button>
+              {canEdit && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 px-2.5 text-xs"
+                    onClick={() => onEditMember(inspector.memberRef)}
+                    title={inspector.kind === 'spouse' ? 'Edit couple record' : 'Edit person'}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 px-2.5 text-xs"
+                    onClick={() => onAddChild(inspector.memberRef)}
+                    title="Add child"
+                  >
+                    <Plus className="size-3.5" />
+                  </Button>
+                </>
+              )}
               <Button
                 size="sm"
                 variant="outline"

@@ -41,6 +41,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/primitives';
+import { useAuth } from '@/components/auth/AuthContext';
+import { canEditTree } from '@/lib/auth/permissions';
 import type { ParsedMemberDraft, SourceParseResult } from '@/lib/import/tree-parser';
 import type { FamilyMemberRecord, FamilyTreeGroupRecord } from '@/lib/data/lang-genealogy';
 
@@ -86,6 +88,11 @@ export function BulkImportDialog({
   activeTreeId,
   onImported,
 }: BulkImportDialogProps) {
+  const { user, authFetch } = useAuth();
+  const editableTrees = useMemo(
+    () => trees.filter((t) => canEditTree(t, user)),
+    [trees, user]
+  );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [sourceTab, setSourceTab] = useState<'file' | 'url'>('file');
@@ -103,10 +110,13 @@ export function BulkImportDialog({
 
   // Target tree configuration
   const [importMode, setImportMode] = useState<'new' | 'existing'>('new');
-  const [targetTreeId, setTargetTreeId] = useState<string>(activeTreeId || trees[0]?.id || '');
+  const [targetTreeId, setTargetTreeId] = useState<string>(
+    editableTrees.find((t) => t.id === activeTreeId)?.id || editableTrees[0]?.id || ''
+  );
   const [newTreeName, setNewTreeName] = useState('');
   const [newTreeSubtitle, setNewTreeSubtitle] = useState('');
   const [newTreeRegion, setNewTreeRegion] = useState('');
+  const [newTreeVisibility, setNewTreeVisibility] = useState<'public' | 'private'>('public');
   const [newTreeAccent, setNewTreeAccent] =
     useState<NonNullable<FamilyTreeGroupRecord['accentColor']>>('maritime');
 
@@ -204,13 +214,14 @@ export function BulkImportDialog({
                 subtitle: newTreeSubtitle.trim(),
                 region: newTreeRegion.trim(),
                 sourceUrl: sourceTab === 'url' ? sourceUrl.trim() : undefined,
+                visibility: newTreeVisibility,
                 accentColor: newTreeAccent,
               }
             : undefined,
         drafts: parseResult.members,
       };
 
-      const res = await fetch('/api/trees/bulk-import', {
+      const res = await authFetch('/api/trees/bulk-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -565,7 +576,7 @@ export function BulkImportDialog({
                     >
                       Create New Tree Group
                     </button>
-                    {trees.length > 0 && (
+                    {editableTrees.length > 0 && (
                       <button
                         type="button"
                         onClick={() => setImportMode('existing')}
@@ -630,6 +641,25 @@ export function BulkImportDialog({
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label className="text-xs">Tree Visibility</Label>
+                      <Select
+                        value={newTreeVisibility}
+                        onValueChange={(v) => setNewTreeVisibility(v as 'public' | 'private')}
+                      >
+                        <SelectTrigger className="h-8 text-xs bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="public" className="text-xs">
+                            Public (Read-Only for Public · Editable by Owner &amp; Collaborators)
+                          </SelectItem>
+                          <SelectItem value="private" className="text-xs">
+                            Private (Visible &amp; Editable Only to Signed-In Owner &amp; Collaborators)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-1 max-w-md">
@@ -639,7 +669,7 @@ export function BulkImportDialog({
                         <SelectValue placeholder="Choose a tree..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {trees.map((t) => (
+                        {editableTrees.map((t) => (
                           <SelectItem key={t.id} value={t.id} className="text-xs">
                             {t.name}
                           </SelectItem>

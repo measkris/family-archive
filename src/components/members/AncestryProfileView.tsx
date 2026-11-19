@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/components/auth/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface AncestryProfileViewProps {
@@ -44,6 +45,7 @@ interface AncestryProfileViewProps {
   allMembers: FamilyMemberRecord[];
   archivalRecords: ArchivalSourceRecord[];
   heritageOrigins: HeritageOriginRecord[];
+  canEdit?: boolean;
   onBackToTree: () => void;
   onSelectProfile: (member: FamilyMemberRecord) => void;
   onTraceInTree: (memberId: string) => void;
@@ -130,6 +132,7 @@ export function AncestryProfileView({
   allMembers,
   archivalRecords,
   heritageOrigins,
+  canEdit = true,
   onBackToTree,
   onSelectProfile,
   onTraceInTree,
@@ -138,6 +141,7 @@ export function AncestryProfileView({
   onDeleteMember,
   onPhotoUpdated,
 }: AncestryProfileViewProps) {
+  const { authFetch } = useAuth();
   const [subTab, setSubTab] = useState<'facts' | 'hints' | 'gallery' | 'lifestory' | 'heritage'>(
     'facts'
   );
@@ -417,10 +421,10 @@ export function AncestryProfileView({
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const up = await fetch('/api/upload', { method: 'POST', body: fd });
+      const up = await authFetch('/api/upload', { method: 'POST', body: fd });
       const uj = await up.json();
       if (!up.ok || !uj.url) throw new Error(uj.error || 'Upload failed');
-      const patch = await fetch(`/api/members/${encodeURIComponent(member.id)}`, {
+      const patch = await authFetch(`/api/members/${encodeURIComponent(member.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ photoUrl: uj.url }),
@@ -536,30 +540,34 @@ export function AncestryProfileView({
             >
               <Search className="size-3.5" /> Search Archives
             </button>
-            <button
-              type="button"
-              onClick={() => onAddChild(member)}
-              className="inline-flex items-center gap-1 rounded-md bg-white/10 hover:bg-white/20 px-2.5 py-1.5 text-xs font-medium text-stone-100 cursor-pointer"
-            >
-              <Plus className="size-3.5" /> Add Child
-            </button>
-            <button
-              type="button"
-              onClick={() => onEditMember(member)}
-              className="inline-flex items-center gap-1 rounded-md bg-white/15 hover:bg-white/25 px-3 py-1.5 text-xs font-semibold text-white cursor-pointer"
-            >
-              <Pencil className="size-3.5" /> Edit
-            </button>
-            {member.id !== 'I' && (
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={handleDelete}
-                title="Delete record"
-                className="inline-flex items-center justify-center rounded-md bg-rose-600/30 hover:bg-rose-600/50 p-1.5 text-rose-100 cursor-pointer"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
+            {canEdit && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onAddChild(member)}
+                  className="inline-flex items-center gap-1 rounded-md bg-white/10 hover:bg-white/20 px-2.5 py-1.5 text-xs font-medium text-stone-100 cursor-pointer"
+                >
+                  <Plus className="size-3.5" /> Add Child
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onEditMember(member)}
+                  className="inline-flex items-center gap-1 rounded-md bg-white/15 hover:bg-white/25 px-3 py-1.5 text-xs font-semibold text-white cursor-pointer"
+                >
+                  <Pencil className="size-3.5" /> Edit
+                </button>
+                {member.id !== 'I' && (
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={handleDelete}
+                    title="Delete record"
+                    className="inline-flex items-center justify-center rounded-md bg-rose-600/30 hover:bg-rose-600/50 p-1.5 text-rose-100 cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -578,26 +586,30 @@ export function AncestryProfileView({
                   priority
                 />
               </div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingPhoto}
-                title="Upload or change portrait photo"
-                className="absolute -bottom-2 -right-2 flex size-8 items-center justify-center rounded-full bg-[#2e3032] border-2 border-white text-white shadow-md hover:bg-black cursor-pointer"
-              >
-                {uploadingPhoto ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Camera className="size-4" />
-                )}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
+              {canEdit && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    title="Upload or change portrait photo"
+                    className="absolute -bottom-2 -right-2 flex size-8 items-center justify-center rounded-full bg-[#2e3032] border-2 border-white text-white shadow-md hover:bg-black cursor-pointer"
+                  >
+                    {uploadingPhoto ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Camera className="size-4" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                </>
+              )}
             </div>
 
             {/* Vital Identity Details */}
@@ -1230,19 +1242,25 @@ export function AncestryProfileView({
               <h2 className="text-lg font-bold text-[#222426] flex items-center gap-2">
                 <ImageIcon className="size-5 text-[#73a922]" /> Media &amp; Portraits
               </h2>
-              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                <Camera className="size-4" /> Upload Photo
-              </Button>
+              {canEdit && (
+                <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                  <Camera className="size-4" /> Upload Photo
+                </Button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {member.photoUrl && (
                 <div className="rounded-lg border border-stone-300 bg-white overflow-hidden">
-                  <img
-                    src={member.photoUrl}
-                    alt={member.fullName}
-                    className="aspect-square w-full object-cover object-top"
-                  />
+                  <div className="aspect-square w-full overflow-hidden">
+                    <OptimizedPortrait
+                      src={member.photoUrl}
+                      alt={member.fullName}
+                      gender={member.gender}
+                      width={400}
+                      priority
+                    />
+                  </div>
                   <div className="p-3">
                     <div className="font-bold text-sm">{member.fullName}</div>
                     <div className="text-xs text-stone-500">Primary Archival Portrait</div>
@@ -1257,11 +1275,15 @@ export function AncestryProfileView({
                     key={sp.id}
                     className="rounded-lg border border-stone-300 bg-white overflow-hidden"
                   >
-                    <img
-                      src={sp.photoUrl}
-                      alt={sp.name}
-                      className="aspect-square w-full object-cover object-top"
-                    />
+                    <div className="aspect-square w-full overflow-hidden">
+                      <OptimizedPortrait
+                        src={sp.photoUrl}
+                        alt={sp.name}
+                        gender={member.gender === 'male' ? 'female' : 'male'}
+                        width={400}
+                        priority
+                      />
+                    </div>
                     <div className="p-3">
                       <div className="font-bold text-sm">{sp.name}</div>
                       <div className="text-xs text-stone-500">Spouse Portrait</div>

@@ -1,3 +1,12 @@
+export interface TreeCollaborator {
+  email: string;
+  uid?: string;
+  displayName?: string;
+  role: 'editor';
+  invitedAt: string;
+  invitedBy: string;
+}
+
 export interface FamilyTreeGroupRecord {
   id: string;
   name: string;
@@ -8,6 +17,10 @@ export interface FamilyTreeGroupRecord {
   sourceUrl?: string;
   accentColor?: 'maritime' | 'emerald' | 'amber' | 'rose';
   createdAt: string;
+  ownerId?: string;
+  ownerEmail?: string;
+  visibility?: 'public' | 'private';
+  collaborators?: TreeCollaborator[];
 }
 
 export const DEFAULT_TREE_ID = 'lang-tampemawa';
@@ -23,6 +36,9 @@ export const DEFAULT_FAMILY_TREE_GROUP: FamilyTreeGroupRecord = {
   sourceUrl: 'https://www.brouwertree.com/langgene.html',
   accentColor: 'maritime',
   createdAt: '2026-01-01T00:00:00.000Z',
+  ownerId: 'system',
+  visibility: 'public',
+  collaborators: [],
 };
 
 export interface FamilyMemberRecord {

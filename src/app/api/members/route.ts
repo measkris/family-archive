@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/db';
-import { DEFAULT_TREE_ID, type FamilyMemberRecord } from '@/lib/data/lang-genealogy';
+import { getAuthenticatedUser } from '@/lib/auth/server';
+import { canEditTree, canViewTree } from '@/lib/auth/permissions';
+import {
+  DEFAULT_FAMILY_TREE_GROUP,
+  DEFAULT_TREE_ID,
+  type FamilyMemberRecord,
+} from '@/lib/data/lang-genealogy';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const db = getDatabase();
-    const members = await db.getAllMembers();
+    const [user, trees, allMembers] = await Promise.all([
+      getAuthenticatedUser(request),
+      db.getFamilyTrees(),
+      db.getAllMembers(),
+    ]);
+
+    const viewableTreeIds = new Set(
+      trees.filter((t) => canViewTree(t, user)).map((t) => t.id)
+    );
+    const members = allMembers.filter((m) =>
+      viewableTreeIds.has(m.treeId || DEFAULT_TREE_ID)
+    );
+
     return NextResponse.json({
       provider: db.provider,
       count: members.length,
@@ -22,6 +40,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Public visitors cannot edit family trees.' },
+        { status: 401 }
+      );
+    }
+
     const body = (await request.json()) as Partial<FamilyMemberRecord>;
     if (!body.firstName || !body.lastName) {
       return NextResponse.json(
@@ -31,6 +57,22 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDatabase();
+    const targetTreeId = body.treeId?.trim() || DEFAULT_TREE_ID;
+    const trees = await db.getFamilyTrees();
+    const targetTree =
+      trees.find((t) => t.id === targetTreeId) ||
+      (targetTreeId === DEFAULT_TREE_ID ? DEFAULT_FAMILY_TREE_GROUP : undefined);
+
+    if (!targetTree) {
+      return NextResponse.json({ error: 'Target family tree not found' }, { status: 404 });
+    }
+    if (!canEditTree(targetTree, user)) {
+      return NextResponse.json(
+        { error: 'You do not have permission to add members to this family tree.' },
+        { status: 403 }
+      );
+    }
+
     const id =
       body.id?.trim() ||
       `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -39,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     const member: FamilyMemberRecord = {
       id,
-      treeId: body.treeId?.trim() || DEFAULT_TREE_ID,
+      treeId: targetTreeId,
       code: body.code?.trim() || `GEN-${body.generation ?? 4}`,
       firstName: body.firstName.trim(),
       lastName: body.lastName.trim(),

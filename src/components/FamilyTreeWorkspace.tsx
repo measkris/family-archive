@@ -5,13 +5,19 @@ import dynamic from 'next/dynamic';
 import {
   Camera,
   CheckCircle2,
+  Crown,
   ExternalLink,
   FileSpreadsheet,
   FolderTree,
   GitBranch,
   Globe2,
+  Lock,
+  LogIn,
+  LogOut,
   Network,
   Plus,
+  Share2,
+  Shield,
   Sparkles,
   Table2,
   Users,
@@ -38,6 +44,17 @@ import {
 import { MemberFormDialog } from '@/components/members/MemberFormDialog';
 import { CreateFamilyTreeDialog } from '@/components/trees/CreateFamilyTreeDialog';
 import { BulkImportDialog } from '@/components/trees/BulkImportDialog';
+import { TreeShareCollaboratorsDialog } from '@/components/trees/TreeShareCollaboratorsDialog';
+import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
+import { AuthDialog } from '@/components/auth/AuthDialog';
+import type { AuthUser, PublicFirebaseConfig } from '@/lib/auth/types';
+import {
+  canEditTree,
+  canManageTreeSettings,
+  getTreeAccessBadge,
+  isTreeCollaborator,
+  isTreeOwner,
+} from '@/lib/auth/permissions';
 import { cn } from '@/lib/utils';
 
 function TableTabSkeleton() {
@@ -133,6 +150,8 @@ const PhotoArchiveTimeline = dynamic(
 );
 
 interface FamilyTreeWorkspaceProps {
+  initialUser?: AuthUser | null;
+  firebaseConfig?: PublicFirebaseConfig | null;
   initialMembers: FamilyMemberRecord[];
   initialFamilyTrees: FamilyTreeGroupRecord[];
   initialArchivalRecords: ArchivalSourceRecord[];
@@ -205,12 +224,28 @@ const ACCENT_TOP_BAR: Record<NonNullable<FamilyTreeGroupRecord['accentColor']>, 
   rose: 'from-rose-800 to-rose-500',
 };
 
-export function FamilyTreeWorkspace({
+export function FamilyTreeWorkspace(props: FamilyTreeWorkspaceProps) {
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  return (
+    <AuthProvider
+      initialUser={props.initialUser ?? null}
+      firebaseConfig={props.firebaseConfig ?? null}
+      onSessionChanged={() => setRefreshTick((t) => t + 1)}
+    >
+      <FamilyTreeWorkspaceInner {...props} refreshTick={refreshTick} />
+    </AuthProvider>
+  );
+}
+
+function FamilyTreeWorkspaceInner({
   initialMembers,
   initialFamilyTrees,
   initialArchivalRecords,
   initialHeritageOrigins,
-}: FamilyTreeWorkspaceProps) {
+  refreshTick,
+}: FamilyTreeWorkspaceProps & { refreshTick: number }) {
+  const { user, signOut, authFetch } = useAuth();
   const [members, setMembers] = useState<FamilyMemberRecord[]>(initialMembers);
   const [familyTrees, setFamilyTrees] = useState<FamilyTreeGroupRecord[]>(
     initialFamilyTrees.length > 0 ? initialFamilyTrees : [DEFAULT_FAMILY_TREE_GROUP]
@@ -219,6 +254,7 @@ export function FamilyTreeWorkspace({
     initialFamilyTrees[0]?.id || DEFAULT_TREE_ID
   );
   const [activeTab, setActiveTab] = useState<string>('tree');
+  const [treeScope, setTreeScope] = useState<'all' | 'mine'>('all');
 
   // Start with NO default selection so the right details panel stays hidden until the user clicks a person
   const [selectedPerson, setSelectedPerson] = useState<SelectedTreePerson | null>(null);
@@ -230,11 +266,65 @@ export function FamilyTreeWorkspace({
   const [defaultParent, setDefaultParent] = useState<FamilyMemberRecord | null>(null);
   const [createTreeOpen, setCreateTreeOpen] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [shareTree, setShareTree] = useState<FamilyTreeGroupRecord | null>(null);
+
+  // Sync visible trees & members whenever signed-in account changes
+  React.useEffect(() => {
+    if (refreshTick === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [treesRes, membersRes] = await Promise.all([
+          authFetch('/api/trees'),
+          authFetch('/api/members'),
+        ]);
+        if (!treesRes.ok || !membersRes.ok || cancelled) return;
+        const treesJson = (await treesRes.json()) as { trees?: FamilyTreeGroupRecord[] };
+        const membersJson = (await membersRes.json()) as { members?: FamilyMemberRecord[] };
+        if (cancelled) return;
+        if (Array.isArray(treesJson.trees) && treesJson.trees.length > 0) {
+          setFamilyTrees(treesJson.trees);
+          setActiveTreeId((curr) =>
+            treesJson.trees!.some((t) => t.id === curr) ? curr : treesJson.trees![0].id
+          );
+        }
+        if (Array.isArray(membersJson.members)) {
+          setMembers(membersJson.members);
+        }
+      } catch {
+        // ignore transient refresh failure
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshTick, authFetch]);
+
+  const myTrees = useMemo(
+    () =>
+      user
+        ? familyTrees.filter((t) => isTreeOwner(t, user) || isTreeCollaborator(t, user))
+        : [],
+    [familyTrees, user]
+  );
+
+  const displayedTrees = useMemo(
+    () => (treeScope === 'mine' && user ? myTrees : familyTrees),
+    [treeScope, user, myTrees, familyTrees]
+  );
 
   const activeTree = useMemo(
-    () => familyTrees.find((t) => t.id === activeTreeId) || familyTrees[0] || DEFAULT_FAMILY_TREE_GROUP,
-    [familyTrees, activeTreeId]
+    () =>
+      displayedTrees.find((t) => t.id === activeTreeId) ||
+      familyTrees.find((t) => t.id === activeTreeId) ||
+      displayedTrees[0] ||
+      familyTrees[0] ||
+      DEFAULT_FAMILY_TREE_GROUP,
+    [displayedTrees, familyTrees, activeTreeId]
   );
+
+  const activeCanEdit = useMemo(() => canEditTree(activeTree, user), [activeTree, user]);
 
   // Members belonging to the currently selected Family Tree Group
   const activeTreeMembers = useMemo(
@@ -376,24 +466,30 @@ export function FamilyTreeWorkspace({
     []
   );
 
-  const handleDeleteMember = useCallback(async (member: FamilyMemberRecord) => {
-    const res = await fetch(`/api/members/${encodeURIComponent(member.id)}`, {
-      method: 'DELETE',
-    });
-    if (res.ok) {
-      setMembers((prev) => prev.filter((m) => m.id !== member.id));
-      setSelectedPerson((curr) =>
-        curr && (curr.kind === 'member' ? curr.member.id : curr.partner.id) === member.id
-          ? null
-          : curr
-      );
-      setProfileTarget((curr) =>
-        curr && (curr.kind === 'member' ? curr.member.id : curr.partner.id) === member.id
-          ? null
-          : curr
-      );
-    }
-  }, []);
+  const handleDeleteMember = useCallback(
+    async (member: FamilyMemberRecord) => {
+      const res = await authFetch(`/api/members/${encodeURIComponent(member.id)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setMembers((prev) => prev.filter((m) => m.id !== member.id));
+        setSelectedPerson((curr) =>
+          curr && (curr.kind === 'member' ? curr.member.id : curr.partner.id) === member.id
+            ? null
+            : curr
+        );
+        setProfileTarget((curr) =>
+          curr && (curr.kind === 'member' ? curr.member.id : curr.partner.id) === member.id
+            ? null
+            : curr
+        );
+      } else {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        alert(json.error || 'Failed to delete member');
+      }
+    },
+    [authFetch]
+  );
 
   const featuredAncestors = useMemo(() => {
     const featured = activeTreeMembers.filter((m) => m.isFeatured);
@@ -427,7 +523,7 @@ export function FamilyTreeWorkspace({
 
           {/* Right Global Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <span className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600">
+            <span className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600">
               <FolderTree className="size-3.5 text-[#0b4a68]" />
               <span>
                 {familyTrees.length} {familyTrees.length === 1 ? 'Tree Group' : 'Tree Groups'} ·{' '}
@@ -435,46 +531,91 @@ export function FamilyTreeWorkspace({
               </span>
             </span>
 
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
-              onClick={() => setBulkImportOpen(true)}
-            >
-              <FileSpreadsheet className="size-3.5 text-[#73a922]" />
-              <span className="hidden sm:inline">Bulk Import</span>
-              <span className="sm:hidden">Import</span>
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
-              onClick={() => setCreateTreeOpen(true)}
-            >
-              <GitBranch className="size-3.5 text-[#0b4a68]" />
-              <span className="hidden sm:inline">New Family Tree</span>
-              <span className="sm:hidden">New Tree</span>
-            </Button>
+            {user ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+                  onClick={() => setBulkImportOpen(true)}
+                >
+                  <FileSpreadsheet className="size-3.5 text-[#73a922]" />
+                  <span className="hidden sm:inline">Bulk Import</span>
+                  <span className="sm:hidden">Import</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+                  onClick={() => setCreateTreeOpen(true)}
+                >
+                  <GitBranch className="size-3.5 text-[#0b4a68]" />
+                  <span className="hidden sm:inline">New Family Tree</span>
+                  <span className="sm:hidden">New Tree</span>
+                </Button>
 
-            <Button
-              size="sm"
-              className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2.5 sm:px-4 text-xs sm:text-sm shadow-xs"
-              onClick={() => {
-                setEditingMember(null);
-                const parentCandidate =
-                  selectedPerson?.kind === 'member'
-                    ? selectedPerson.member
-                    : selectedPerson?.kind === 'spouse'
-                    ? selectedPerson.partner
-                    : activeTreeMembers[0] || null;
-                setDefaultParent(parentCandidate);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="size-4" />
-              <span className="hidden xs:inline sm:inline">Add Member</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
+                {activeCanEdit && (
+                  <Button
+                    size="sm"
+                    className="bg-[#73a922] text-white hover:bg-[#62911b] font-semibold h-8 sm:h-9 px-2.5 sm:px-3.5 text-xs sm:text-sm shadow-xs"
+                    onClick={() => {
+                      setEditingMember(null);
+                      const parentCandidate =
+                        selectedPerson?.kind === 'member'
+                          ? selectedPerson.member
+                          : selectedPerson?.kind === 'spouse'
+                          ? selectedPerson.partner
+                          : activeTreeMembers[0] || null;
+                      setDefaultParent(parentCandidate);
+                      setFormOpen(true);
+                    }}
+                  >
+                    <Plus className="size-4" />
+                    <span className="hidden md:inline">Add Member</span>
+                    <span className="md:hidden">Add</span>
+                  </Button>
+                )}
+
+                <div className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 pl-2 pr-1.5 py-1">
+                  {user.isSuperAdmin && (
+                    <span
+                      title="Super Admin — Full Edit Access Across All Trees"
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900"
+                    >
+                      <Crown className="size-3 text-amber-700" />
+                      <span className="hidden sm:inline">Super Admin</span>
+                    </span>
+                  )}
+                  <span className="hidden md:inline text-xs font-medium text-stone-700 max-w-[140px] truncate">
+                    {user.displayName || user.email}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    title={`Sign out (${user.email})`}
+                    className="inline-flex items-center gap-1 rounded-full bg-white hover:bg-rose-50 border border-stone-200 px-2 py-1 text-[11px] font-medium text-stone-700 hover:text-rose-700 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="size-3" />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[11px] font-medium text-stone-600">
+                  <Lock className="size-3 text-stone-500" />
+                  Read-Only Public View
+                </span>
+                <Button
+                  size="sm"
+                  onClick={() => setAuthDialogOpen(true)}
+                  className="bg-[#0b4a68] hover:bg-[#093b54] text-white font-semibold h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm shadow-xs"
+                >
+                  <LogIn className="size-3.5" />
+                  Sign In / Register
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -492,36 +633,75 @@ export function FamilyTreeWorkspace({
         <div className="relative mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-8 py-3.5 sm:py-4 space-y-3">
           {/* Family Tree Groups Header */}
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
                 <FolderTree className="size-3.5 text-[#0b4a68]" /> Family Tree Groups
               </span>
               <Badge variant="outline" className="bg-white/80 text-[10px] font-mono">
-                {familyTrees.length} {familyTrees.length === 1 ? 'Collection' : 'Collections'}
+                {displayedTrees.length} {displayedTrees.length === 1 ? 'Collection' : 'Collections'}
               </Badge>
+
+              {user && (
+                <div className="inline-flex rounded-full border border-stone-200 bg-white/80 p-0.5 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setTreeScope('all')}
+                    className={cn(
+                      'rounded-full px-2.5 py-0.5 font-semibold transition-colors cursor-pointer',
+                      treeScope === 'all'
+                        ? 'bg-[#0b4a68] text-white'
+                        : 'text-stone-600 hover:text-stone-900'
+                    )}
+                  >
+                    All Viewable ({familyTrees.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTreeScope('mine')}
+                    className={cn(
+                      'rounded-full px-2.5 py-0.5 font-semibold transition-colors cursor-pointer',
+                      treeScope === 'mine'
+                        ? 'bg-[#73a922] text-white'
+                        : 'text-stone-600 hover:text-stone-900'
+                    )}
+                  >
+                    My &amp; Invited Trees ({myTrees.length})
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            {user ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBulkImportOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#0b4a68]/35 bg-white/90 hover:bg-sky-50 px-3 py-1 text-xs font-semibold text-[#0b4a68] shadow-2xs transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet className="size-3.5" /> Import Excel / URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreateTreeOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#73a922]/40 bg-white/90 hover:bg-[#f4faea] px-3 py-1 text-xs font-semibold text-[#4d7c0f] shadow-2xs transition-colors cursor-pointer"
+                >
+                  <Plus className="size-3.5" /> Add Family Tree Group
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={() => setBulkImportOpen(true)}
+                onClick={() => setAuthDialogOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-[#0b4a68]/35 bg-white/90 hover:bg-sky-50 px-3 py-1 text-xs font-semibold text-[#0b4a68] shadow-2xs transition-colors cursor-pointer"
               >
-                <FileSpreadsheet className="size-3.5" /> Import Excel / URL
+                <LogIn className="size-3.5" /> Sign in to build or edit your own tree
               </button>
-              <button
-                type="button"
-                onClick={() => setCreateTreeOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#73a922]/40 bg-white/90 hover:bg-[#f4faea] px-3 py-1 text-xs font-semibold text-[#4d7c0f] shadow-2xs transition-colors cursor-pointer"
-              >
-                <Plus className="size-3.5" /> Add Family Tree Group
-              </button>
-            </div>
+            )}
           </div>
 
           {/* Family Tree Group Cards Strip */}
           <div className="flex items-stretch gap-3 overflow-x-auto pb-1">
-            {familyTrees.map((tree) => {
+            {displayedTrees.map((tree) => {
               const isSelected = tree.id === activeTree.id;
               const treeMembers = members.filter(
                 (m) => (m.treeId || DEFAULT_TREE_ID) === tree.id
@@ -532,6 +712,9 @@ export function FamilyTreeWorkspace({
               );
               const previewAvatars = treeMembers.slice(0, 3);
               const accent = ACCENT_TOP_BAR[tree.accentColor || 'maritime'];
+              const roleBadge = getTreeAccessBadge(tree, user);
+              const canManage = canManageTreeSettings(tree, user);
+              const isPrivate = tree.visibility === 'private';
 
               return (
                 <div
@@ -579,7 +762,33 @@ export function FamilyTreeWorkspace({
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center justify-end gap-1">
+                        {isPrivate ? (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-sky-50 border border-sky-200 px-1.5 py-0.5 text-[10px] font-semibold text-[#0b4a68]">
+                            <Lock className="size-2.5" /> Private
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] font-medium text-stone-600">
+                            <Globe2 className="size-2.5" /> Public
+                          </span>
+                        )}
+
+                        {roleBadge === 'owner' && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                            Owner
+                          </span>
+                        )}
+                        {roleBadge === 'collaborator' && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-800">
+                            Collaborator
+                          </span>
+                        )}
+                        {roleBadge === 'super-admin' && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                            <Shield className="size-2.5" /> Admin
+                          </span>
+                        )}
+
                         {isSelected && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#eef7df] border border-[#73a922]/40 px-2 py-0.5 text-[10px] font-bold text-[#3f6212]">
                             <CheckCircle2 className="size-3 text-[#73a922]" /> Active
@@ -607,41 +816,78 @@ export function FamilyTreeWorkspace({
                           ? `${maxGenCount} ${maxGenCount === 1 ? 'Generation' : 'Generations'}`
                           : 'Empty tree · Ready to build'}
                       </span>
-                      {tree.sourceUrl && (
-                        <a
-                          href={tree.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 text-[#0b4a68] hover:underline font-medium truncate max-w-[155px]"
-                        >
-                          {tree.sourceLabel || 'Source'} <ExternalLink className="size-2.5 shrink-0" />
-                        </a>
-                      )}
+
+                      <div className="flex items-center gap-2">
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShareTree(tree);
+                            }}
+                            className="inline-flex items-center gap-1 rounded-full bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-[#0b4a68] transition-colors cursor-pointer"
+                            title="Visibility & Invite Collaborators"
+                          >
+                            <Share2 className="size-2.5" />
+                            Share{(tree.collaborators?.length || 0) > 0 ? ` (${tree.collaborators!.length})` : ''}
+                          </button>
+                        )}
+                        {tree.sourceUrl && (
+                          <a
+                            href={tree.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[#0b4a68] hover:underline font-medium truncate max-w-[130px]"
+                          >
+                            {tree.sourceLabel || 'Source'} <ExternalLink className="size-2.5 shrink-0" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               );
             })}
 
-            {/* Add More Family Tree Group Card */}
-            <button
-              type="button"
-              onClick={() => setCreateTreeOpen(true)}
-              className="group min-w-[180px] sm:min-w-[215px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
-            >
-              <span className="flex size-10 items-center justify-center rounded-full bg-[#eef7df] text-[#4d7c0f] group-hover:bg-[#73a922] group-hover:text-white transition-colors">
-                <Plus className="size-5" />
-              </span>
-              <div>
-                <div className="text-xs font-bold text-stone-800 group-hover:text-[#365314]">
-                  Add Family Tree Group
+            {/* Add More Family Tree Group Card (authenticated) OR Sign In prompt (public) */}
+            {user ? (
+              <button
+                type="button"
+                onClick={() => setCreateTreeOpen(true)}
+                className="group min-w-[180px] sm:min-w-[215px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#73a922] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
+              >
+                <span className="flex size-10 items-center justify-center rounded-full bg-[#eef7df] text-[#4d7c0f] group-hover:bg-[#73a922] group-hover:text-white transition-colors">
+                  <Plus className="size-5" />
+                </span>
+                <div>
+                  <div className="text-xs font-bold text-stone-800 group-hover:text-[#365314]">
+                    Add Family Tree Group
+                  </div>
+                  <div className="text-[11px] text-stone-500 mt-0.5">
+                    Start your own family lineage
+                  </div>
                 </div>
-                <div className="text-[11px] text-stone-500 mt-0.5">
-                  Start another family lineage
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAuthDialogOpen(true)}
+                className="group min-w-[200px] sm:min-w-[235px] shrink-0 rounded-xl border-2 border-dashed border-stone-300 hover:border-[#0b4a68] bg-white/60 hover:bg-white p-4 flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer"
+              >
+                <span className="flex size-10 items-center justify-center rounded-full bg-sky-50 text-[#0b4a68] group-hover:bg-[#0b4a68] group-hover:text-white transition-colors">
+                  <LogIn className="size-5" />
+                </span>
+                <div>
+                  <div className="text-xs font-bold text-stone-800 group-hover:text-[#0b4a68]">
+                    Create Your Own Tree
+                  </div>
+                  <div className="text-[11px] text-stone-500 mt-0.5">
+                    Sign in with Email or Google
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            )}
           </div>
 
           {/* Key Ancestors Ribbon for Active Family Tree Group */}
@@ -683,6 +929,7 @@ export function FamilyTreeWorkspace({
             allMembers={activeTreeMembers}
             archivalRecords={initialArchivalRecords}
             heritageOrigins={initialHeritageOrigins}
+            canEdit={activeCanEdit}
             onBackToTree={() => setProfileTarget(null)}
             onSelectProfile={handleOpenMemberProfile}
             onTraceInTree={() => handleFocusInTree(activeProfileData.traceId)}
@@ -738,6 +985,7 @@ export function FamilyTreeWorkspace({
                   key={activeTree.id}
                   treeName={activeTree.name}
                   members={activeTreeMembers}
+                  canEdit={activeCanEdit}
                   selectedPerson={selectedPerson}
                   focusMemberId={focusMemberId}
                   onSelectPerson={setSelectedPerson}
@@ -764,20 +1012,24 @@ export function FamilyTreeWorkspace({
                   <div className="space-y-1 max-w-md">
                     <h2 className="font-heritage text-3xl font-bold">{activeTree.name}</h2>
                     <p className="text-sm text-stone-300">
-                      This family tree group has no ancestors yet. Add your first founding ancestor
-                      to start building the interactive chart.
+                      This family tree group has no ancestors yet.{' '}
+                      {activeCanEdit
+                        ? 'Add your first founding ancestor to start building the interactive chart.'
+                        : 'Only the tree owner or collaborators can add members.'}
                     </p>
                   </div>
-                  <Button
-                    className="bg-[#73a922] hover:bg-[#62911b] text-white font-semibold"
-                    onClick={() => {
-                      setEditingMember(null);
-                      setDefaultParent(null);
-                      setFormOpen(true);
-                    }}
-                  >
-                    <Plus className="size-4" /> Add Founding Ancestor
-                  </Button>
+                  {activeCanEdit && (
+                    <Button
+                      className="bg-[#73a922] hover:bg-[#62911b] text-white font-semibold"
+                      onClick={() => {
+                        setEditingMember(null);
+                        setDefaultParent(null);
+                        setFormOpen(true);
+                      }}
+                    >
+                      <Plus className="size-4" /> Add Founding Ancestor
+                    </Button>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -794,6 +1046,7 @@ export function FamilyTreeWorkspace({
             <TabsContent value="directory" className="mt-0">
               <MembersDirectoryTable
                 members={activeTreeMembers}
+                canEdit={activeCanEdit}
                 onSelectMember={handleOpenMemberProfile}
                 onFocusInTree={handleFocusInTree}
                 onAddNew={() => {
@@ -860,6 +1113,22 @@ export function FamilyTreeWorkspace({
         trees={familyTrees}
         activeTreeId={activeTree.id}
         onImported={handleBulkImported}
+      />
+
+      {/* Firebase Email/Password + Google Login / Register Dialog */}
+      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
+
+      {/* Tree Visibility & Invite Collaborators Dialog */}
+      <TreeShareCollaboratorsDialog
+        open={Boolean(shareTree)}
+        onOpenChange={(open) => {
+          if (!open) setShareTree(null);
+        }}
+        tree={shareTree}
+        onTreeUpdated={(updated) => {
+          setFamilyTrees((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+          setShareTree(updated);
+        }}
       />
     </div>
   );

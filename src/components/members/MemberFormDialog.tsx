@@ -18,7 +18,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input, Textarea } from '@/components/ui/input';
 import { Label } from '@/components/ui/primitives';
-import { PersonAvatarIllustration } from '@/components/ui/PersonAvatarIllustration';
+import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
+import { useAuth } from '@/components/auth/AuthContext';
+import { canEditTree } from '@/lib/auth/permissions';
 import {
   Select,
   SelectContent,
@@ -54,6 +56,11 @@ function MemberFormBody({
   const initialTreeId =
     editingMember?.treeId || p?.treeId || activeTreeId || DEFAULT_TREE_ID;
 
+  const { user, authFetch } = useAuth();
+  const editableTrees = useMemo(
+    () => familyTrees.filter((t) => canEditTree(t, user)),
+    [familyTrees, user]
+  );
   const [treeId, setTreeId] = useState<string>(initialTreeId);
   const [firstName, setFirstName] = useState(editingMember?.firstName ?? '');
   const [lastName, setLastName] = useState(editingMember?.lastName ?? p?.lastName ?? '');
@@ -132,7 +139,7 @@ function MemberFormBody({
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const res = await authFetch('/api/upload', { method: 'POST', body: fd });
       const json = await res.json();
       if (res.ok && json.url) {
         setPhotoUrl(json.url);
@@ -204,7 +211,7 @@ function MemberFormBody({
         : '/api/members';
       const method = editingMember ? 'PATCH' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -227,17 +234,19 @@ function MemberFormBody({
       {/* Unified Portrait Photograph + Live Gender Toggle Card */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-xl border border-border bg-secondary/40 p-3.5">
         <div className="shrink-0">
-          {photoUrl ? (
-            <img
+          <div className="size-20 rounded-full overflow-hidden border-2 border-amber-700/40 shadow-xs bg-stone-200">
+            <OptimizedPortrait
               src={photoUrl}
-              alt="Portrait preview"
-              className="size-20 rounded-full object-cover object-top border-2 border-amber-700/40 shadow-xs"
+              alt={
+                firstName || lastName
+                  ? `${firstName} ${lastName}`.trim()
+                  : 'Portrait preview'
+              }
+              gender={gender}
+              width={160}
+              priority
             />
-          ) : (
-            <div className="size-20 rounded-full overflow-hidden border border-border shadow-xs">
-              <PersonAvatarIllustration gender={gender} />
-            </div>
-          )}
+          </div>
         </div>
 
         <div className="flex-1 w-full space-y-2.5">
@@ -313,7 +322,7 @@ function MemberFormBody({
               <SelectValue placeholder="Choose family tree group" />
             </SelectTrigger>
             <SelectContent>
-              {familyTrees.map((tree) => (
+              {(editableTrees.length > 0 ? editableTrees : familyTrees).map((tree) => (
                 <SelectItem key={tree.id} value={tree.id}>
                   {tree.name}
                 </SelectItem>
