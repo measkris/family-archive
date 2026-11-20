@@ -315,10 +315,46 @@ function AncestryTreeCanvasInner({
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
-  const [showMinimap, setShowMinimap] = useState<boolean>(true);
+  const [showMinimap, setShowMinimap] = useState<boolean>(false);
+  const minimapHideTimerRef = useRef<number | null>(null);
+  const minimapHoveredRef = useRef<boolean>(false);
   const [sidebarTab, setSidebarTab] = useState<'connections' | 'heritage'>('connections');
   const [uploadingPhoto, setUploadingPhoto] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const clearMinimapTimer = useCallback(() => {
+    if (minimapHideTimerRef.current !== null) {
+      window.clearTimeout(minimapHideTimerRef.current);
+      minimapHideTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleMinimapHide = useCallback(
+    (delayMs = 2400) => {
+      clearMinimapTimer();
+      minimapHideTimerRef.current = window.setTimeout(() => {
+        if (!minimapHoveredRef.current) {
+          setShowMinimap(false);
+        }
+      }, delayMs);
+    },
+    [clearMinimapTimer]
+  );
+
+  const revealMinimap = useCallback(
+    (autoHideAfterMs?: number) => {
+      clearMinimapTimer();
+      setShowMinimap(true);
+      if (autoHideAfterMs) {
+        scheduleMinimapHide(autoHideAfterMs);
+      }
+    },
+    [clearMinimapTimer, scheduleMinimapHide]
+  );
+
+  useEffect(() => {
+    return () => clearMinimapTimer();
+  }, [clearMinimapTimer]);
 
   const toggleCollapse = useCallback((id: string) => {
     setCollapsedIds((prev) => {
@@ -607,6 +643,21 @@ function AncestryTreeCanvasInner({
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onPaneClick={() => onSelectPerson(null)}
+          onMoveStart={(event) => {
+            if (event) {
+              revealMinimap();
+            }
+          }}
+          onMove={(event) => {
+            if (event) {
+              revealMinimap();
+            }
+          }}
+          onMoveEnd={(event) => {
+            if (event) {
+              scheduleMinimapHide(2400);
+            }
+          }}
           nodeTypes={nodeTypes}
           fitView
           fitViewOptions={{ padding: 0.16 }}
@@ -788,7 +839,10 @@ function AncestryTreeCanvasInner({
 
               <button
                 type="button"
-                onClick={() => zoomIn({ duration: 250 })}
+                onClick={() => {
+                  revealMinimap(2600);
+                  zoomIn({ duration: 250 });
+                }}
                 title="Zoom In"
                 className="flex size-8 items-center justify-center rounded-md hover:bg-white/15 transition-colors cursor-pointer"
               >
@@ -797,7 +851,10 @@ function AncestryTreeCanvasInner({
 
               <button
                 type="button"
-                onClick={() => zoomOut({ duration: 250 })}
+                onClick={() => {
+                  revealMinimap(2600);
+                  zoomOut({ duration: 250 });
+                }}
                 title="Zoom Out"
                 className="flex size-8 items-center justify-center rounded-md hover:bg-white/15 transition-colors cursor-pointer"
               >
@@ -806,7 +863,10 @@ function AncestryTreeCanvasInner({
 
               <button
                 type="button"
-                onClick={() => fitView({ padding: 0.16, duration: 350 })}
+                onClick={() => {
+                  revealMinimap(2600);
+                  fitView({ padding: 0.16, duration: 350 });
+                }}
                 title="Fit Entire Tree to View"
                 className="flex size-8 items-center justify-center rounded-md hover:bg-white/15 transition-colors cursor-pointer"
               >
@@ -815,45 +875,65 @@ function AncestryTreeCanvasInner({
             </div>
           </Panel>
 
-          {/* Bottom-Left Minimap — high-contrast (hidden on very small phones) */}
-          {showMinimap && (
-            <Panel position="bottom-left" className="!m-3 hidden sm:block">
-              <div className="relative rounded-lg overflow-hidden border-2 border-[#1f2528] bg-[#f1efe9] shadow-xl">
-                <button
-                  type="button"
-                  onClick={() => setShowMinimap(false)}
-                  title="Hide minimap"
-                  className="absolute top-1 right-1 z-10 flex size-5 items-center justify-center rounded bg-[#1f2528]/85 text-stone-100 hover:bg-black cursor-pointer"
-                >
-                  <X className="size-3" />
-                </button>
-                <MiniMap
-                  pannable
-                  zoomable
-                  bgColor="#f1efe9"
-                  style={{
-                    position: 'relative',
-                    margin: 0,
-                    width: 190,
-                    height: 120,
-                    border: 'none',
-                  }}
-                  maskColor="rgba(20, 30, 38, 0.38)"
-                  maskStrokeColor="#4d7c0f"
-                  maskStrokeWidth={3}
-                  nodeStrokeColor="#11181d"
-                  nodeStrokeWidth={2}
-                  nodeBorderRadius={2}
-                  nodeColor={(node) => {
-                    const m = (node.data as AncestryNodeData)?.member;
-                    if (!m) return '#1f2528';
-                    if (m.id === activeNodeMemberId) return '#4d7c0f';
-                    return '#2b343b';
-                  }}
-                />
-              </div>
-            </Panel>
-          )}
+          {/* Bottom-Left Adaptive Minimap — appears while panning or zooming */}
+          <Panel
+            position="bottom-left"
+            className={cn(
+              '!m-3 hidden sm:block transition-all duration-300',
+              showMinimap
+                ? 'opacity-100 translate-y-0'
+                : 'opacity-0 translate-y-2 pointer-events-none'
+            )}
+          >
+            <div
+              onMouseEnter={() => {
+                minimapHoveredRef.current = true;
+                clearMinimapTimer();
+              }}
+              onMouseLeave={() => {
+                minimapHoveredRef.current = false;
+                scheduleMinimapHide(1800);
+              }}
+              className="relative rounded-lg overflow-hidden border-2 border-[#1f2528] bg-[#f1efe9] shadow-xl"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  minimapHoveredRef.current = false;
+                  clearMinimapTimer();
+                  setShowMinimap(false);
+                }}
+                title="Hide minimap"
+                className="absolute top-1 right-1 z-10 flex size-5 items-center justify-center rounded bg-[#1f2528]/85 text-stone-100 hover:bg-black cursor-pointer"
+              >
+                <X className="size-3" />
+              </button>
+              <MiniMap
+                pannable
+                zoomable
+                bgColor="#f1efe9"
+                style={{
+                  position: 'relative',
+                  margin: 0,
+                  width: 190,
+                  height: 120,
+                  border: 'none',
+                }}
+                maskColor="rgba(20, 30, 38, 0.38)"
+                maskStrokeColor="#4d7c0f"
+                maskStrokeWidth={3}
+                nodeStrokeColor="#11181d"
+                nodeStrokeWidth={2}
+                nodeBorderRadius={2}
+                nodeColor={(node) => {
+                  const m = (node.data as AncestryNodeData)?.member;
+                  if (!m) return '#1f2528';
+                  if (m.id === activeNodeMemberId) return '#4d7c0f';
+                  return '#2b343b';
+                }}
+              />
+            </div>
+          </Panel>
         </ReactFlow>
       </div>
 
