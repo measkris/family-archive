@@ -12,6 +12,7 @@ import {
   Search,
 } from 'lucide-react';
 import type { FamilyMemberRecord } from '@/lib/data/lang-genealogy';
+import { downloadGedcomFile } from '@/lib/export/gedcom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
@@ -143,7 +144,26 @@ export function MembersDirectoryTable({
               {tc('Every documented member of the Jacob Lang & Maria Tampemawa lineage stored in the live database.')}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                downloadGedcomFile(
+                  members,
+                  'lang-tampemawa-family-tree.ged',
+                  'Jacob Lang & Maria Tampemawa Lineage'
+                )
+              }
+              title="Export standard GEDCOM 5.5.1 format to import directly into FamilySearch Genealogies, RootsFinder, or Ancestry"
+              className="gap-1.5"
+            >
+              <Download className="size-4 text-[#73a922]" />
+              <span>{t.exportGedcom}</span>
+              <Badge variant="outline" className="hidden sm:inline-flex text-[10px] py-0 px-1 font-mono text-emerald-700 border-emerald-300 bg-emerald-50">
+                FamilySearch
+              </Badge>
+            </Button>
             <Button variant="outline" size="sm" onClick={exportCsv}>
               <Download className="size-4" /> {t.exportCsv}
             </Button>

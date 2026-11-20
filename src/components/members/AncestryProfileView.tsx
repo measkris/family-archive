@@ -33,6 +33,7 @@ import {
 import type { ArchivalSourceRecord, FamilyMemberRecord } from '@/lib/data/lang-genealogy';
 import type { HeritageOriginRecord } from '@/lib/db/types';
 import type { OpenArchiveRecord } from '@/app/api/heritage/openarchives/route';
+import { buildPersonSearchConnectors } from '@/lib/genealogy/search-connectors';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -169,6 +170,9 @@ export function AncestryProfileView({
   const [hints, setHints] = useState<OpenArchiveRecord[]>([]);
   const [hintsTotal, setHintsTotal] = useState<number>(0);
   const [hintsLoading, setHintsLoading] = useState<boolean>(false);
+
+  // Pre-filled 1-click external archive search connectors (FamilySearch Solutions Gallery & regional archives)
+  const searchConnectors = useMemo(() => buildPersonSearchConnectors(member), [member]);
 
   const parent = member.parentId
     ? allMembers.find((m) => m.id === member.parentId) || null
@@ -1269,6 +1273,61 @@ export function AncestryProfileView({
                 ))}
               </div>
             )}
+
+            {/* FamilySearch Solutions Gallery & Free Archive Search Connectors */}
+            <div className="rounded-lg border border-[#0b4a68]/20 bg-white p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-bold text-sm text-[#222426] flex items-center gap-2">
+                    <BookOpen className="size-4 text-[#0b4a68]" />
+                    1-Click Archive Search — {member.fullName}
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Pre-filled search links to FamilySearch Solutions Gallery, Delpher, OpenArchives.nl, BillionGraves &amp; more — all free.
+                  </p>
+                </div>
+                <Badge variant="outline" className="shrink-0 text-[10px] font-mono border-[#0b4a68]/30 text-[#0b4a68]">
+                  {searchConnectors.length} sources
+                </Badge>
+              </div>
+
+              {(['FamilySearch & Solutions', 'Dutch East Indies & Indo', 'European Archives', 'Cemetery & Memorials'] as const).map((cat) => {
+                const catItems = searchConnectors.filter((c) => c.category === cat);
+                if (!catItems.length) return null;
+                return (
+                  <div key={cat}>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1.5 pl-0.5">{cat}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {catItems.map((conn) => (
+                        <a
+                          key={conn.id}
+                          href={conn.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex flex-col gap-1 rounded-lg border border-stone-200 bg-stone-50/60 hover:border-[#0b4a68]/40 hover:bg-sky-50/60 hover:shadow-sm p-2.5 transition-all"
+                        >
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="font-semibold text-xs text-stone-800 group-hover:text-[#0b4a68] transition-colors line-clamp-1">
+                              {conn.name}
+                            </span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono bg-white border-stone-200">
+                                FREE
+                              </Badge>
+                              <ExternalLink className="size-3 text-stone-400 group-hover:text-[#0b4a68]" />
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-stone-500 leading-relaxed line-clamp-2">{conn.description}</p>
+                          {conn.partnerInfo && (
+                            <span className="text-[10px] font-medium text-emerald-700">{conn.partnerInfo}</span>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

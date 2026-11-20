@@ -31,7 +31,7 @@ export interface ParsedMemberDraft {
 }
 
 export interface SourceParseResult {
-  detectedFormat: 'excel' | 'csv' | 'json' | 'openarchives-api' | 'brouwertree-html';
+  detectedFormat: 'excel' | 'csv' | 'json' | 'openarchives-api' | 'brouwertree-html' | 'gedcom';
   suggestedTreeName: string;
   suggestedSubtitle: string;
   suggestedRegion: string;
@@ -508,6 +508,281 @@ export function parseJsonString(rawText: string, sourceLabel: string): SourcePar
       'Mapped parentCode / parentId links and spouse fields automatically.',
     ],
     rawSample: JSON.stringify(arr.slice(0, 2), null, 2),
+    members,
+  };
+}
+
+interface RawGedcomIndi {
+  id: string;
+  code?: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  gender: 'male' | 'female' | 'unknown';
+  birthDate?: string;
+  birthYear?: number;
+  birthPlace?: string;
+  deathDate?: string;
+  deathYear?: number;
+  deathPlace?: string;
+  occupation?: string;
+  bio?: string;
+  famc?: string;
+  fams: string[];
+}
+
+interface RawGedcomFam {
+  id: string;
+  husb?: string;
+  wife?: string;
+  children: string[];
+  marrDate?: string;
+  marrPlace?: string;
+}
+
+/**
+ * Parses standard GEDCOM 5.5.1 / 7.0 text exported from FamilySearch, RootsFinder, Ancestry, etc.
+ */
+export function parseGedcomString(rawText: string, sourceLabel: string): SourceParseResult {
+  const lines = rawText.split(/\r?\n/);
+  const indis = new Map<string, RawGedcomIndi>();
+  const fams = new Map<string, RawGedcomFam>();
+
+  let currentIndi: RawGedcomIndi | null = null;
+  let currentFam: RawGedcomFam | null = null;
+  let currentEvent: 'BIRT' | 'DEAT' | 'MARR' | null = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    // Match level 0 record definition: 0 @I1@ INDI or 0 @F1@ FAM
+    const level0Match = line.match(/^0\s+(@[^@]+@)\s+(INDI|FAM)/i);
+    if (level0Match) {
+      const id = level0Match[1];
+      const type = level0Match[2].toUpperCase();
+      currentEvent = null;
+
+      if (type === 'INDI') {
+        currentIndi = {
+          id,
+          gender: 'unknown',
+          fams: [],
+        };
+        indis.set(id, currentIndi);
+        currentFam = null;
+      } else if (type === 'FAM') {
+        currentFam = {
+          id,
+          children: [],
+        };
+        fams.set(id, currentFam);
+        currentIndi = null;
+      }
+      continue;
+    }
+
+    if (currentIndi) {
+      if (line.startsWith('1 NAME')) {
+        const nameContent = line.substring(6).trim();
+        const slashMatch = nameContent.match(/^(.*?)\s*\/([^/]*)\/(.*)$/);
+        if (slashMatch) {
+          const first = (slashMatch[1] + (slashMatch[3] ? ' ' + slashMatch[3] : '')).trim();
+          const last = slashMatch[2].trim();
+          currentIndi.firstName = first || nameContent.replace(/\//g, '').trim();
+          currentIndi.lastName = last || 'Unknown';
+          currentIndi.fullName = `${currentIndi.firstName} ${currentIndi.lastName}`.trim();
+        } else {
+          currentIndi.fullName = nameContent;
+          const split = splitName(nameContent);
+          currentIndi.firstName = split.firstName;
+          currentIndi.lastName = split.lastName;
+        }
+        currentEvent = null;
+      } else if (line.startsWith('2 GIVN')) {
+        currentIndi.firstName = line.substring(6).trim();
+        if (currentIndi.lastName) {
+          currentIndi.fullName = `${currentIndi.firstName} ${currentIndi.lastName}`.trim();
+        }
+      } else if (line.startsWith('2 SURN')) {
+        currentIndi.lastName = line.substring(6).trim();
+        if (currentIndi.firstName) {
+          currentIndi.fullName = `${currentIndi.firstName} ${currentIndi.lastName}`.trim();
+        }
+      } else if (line.startsWith('1 SEX')) {
+        const s = line.substring(5).trim().toUpperCase();
+        currentIndi.gender = s === 'M' ? 'male' : s === 'F' ? 'female' : 'unknown';
+        currentEvent = null;
+      } else if (line.startsWith('1 BIRT')) {
+        currentEvent = 'BIRT';
+      } else if (line.startsWith('1 DEAT')) {
+        currentEvent = 'DEAT';
+      } else if (line.startsWith('1 OCCU')) {
+        currentIndi.occupation = line.substring(6).trim();
+        currentEvent = null;
+      } else if (line.startsWith('1 NOTE')) {
+        const note = line.substring(6).trim();
+        currentIndi.bio = currentIndi.bio ? `${currentIndi.bio} ${note}` : note;
+      } else if (line.startsWith('1 REFN')) {
+        currentIndi.code = line.substring(6).trim();
+      } else if (line.startsWith('1 FAMC')) {
+        const famcMatch = line.match(/@([^@]+)@/);
+        if (famcMatch) currentIndi.famc = `@${famcMatch[1]}@`;
+      } else if (line.startsWith('1 FAMS')) {
+        const famsMatch = line.match(/@([^@]+)@/);
+        if (famsMatch) currentIndi.fams.push(`@${famsMatch[1]}@`);
+      } else if (currentEvent === 'BIRT') {
+        if (line.startsWith('2 DATE')) {
+          currentIndi.birthDate = line.substring(6).trim();
+          currentIndi.birthYear = extractYear(currentIndi.birthDate);
+        } else if (line.startsWith('2 PLAC')) {
+          currentIndi.birthPlace = normalizePlaceName(line.substring(6).trim());
+        }
+      } else if (currentEvent === 'DEAT') {
+        if (line.startsWith('2 DATE')) {
+          currentIndi.deathDate = line.substring(6).trim();
+          currentIndi.deathYear = extractYear(currentIndi.deathDate);
+        } else if (line.startsWith('2 PLAC')) {
+          currentIndi.deathPlace = normalizePlaceName(line.substring(6).trim());
+        }
+      }
+    } else if (currentFam) {
+      if (line.startsWith('1 HUSB')) {
+        const m = line.match(/@([^@]+)@/);
+        if (m) currentFam.husb = `@${m[1]}@`;
+      } else if (line.startsWith('1 WIFE')) {
+        const m = line.match(/@([^@]+)@/);
+        if (m) currentFam.wife = `@${m[1]}@`;
+      } else if (line.startsWith('1 CHIL')) {
+        const m = line.match(/@([^@]+)@/);
+        if (m) currentFam.children.push(`@${m[1]}@`);
+      } else if (line.startsWith('1 MARR')) {
+        currentEvent = 'MARR';
+      } else if (currentEvent === 'MARR') {
+        if (line.startsWith('2 DATE')) {
+          currentFam.marrDate = line.substring(6).trim();
+        } else if (line.startsWith('2 PLAC')) {
+          currentFam.marrPlace = normalizePlaceName(line.substring(6).trim());
+        }
+      }
+    }
+  }
+
+  // Calculate generation depths for each individual using BFS from roots
+  const genMap = new Map<string, number>();
+  for (const [id, indi] of indis.entries()) {
+    if (!indi.famc) {
+      genMap.set(id, 1);
+    } else {
+      const fam = fams.get(indi.famc);
+      if (!fam || (!fam.husb && !fam.wife)) {
+        genMap.set(id, 1);
+      }
+    }
+  }
+
+  // BFS down family tree to propagate generation
+  let changed = true;
+  let iterations = 0;
+  while (changed && iterations < 30) {
+    changed = false;
+    iterations++;
+    for (const [, fam] of fams.entries()) {
+      const parentGen = Math.max(
+        fam.husb ? genMap.get(fam.husb) || 0 : 0,
+        fam.wife ? genMap.get(fam.wife) || 0 : 0
+      );
+      if (parentGen > 0) {
+        for (const childId of fam.children) {
+          const currentGen = genMap.get(childId) || 0;
+          if (currentGen < parentGen + 1) {
+            genMap.set(childId, parentGen + 1);
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  // Convert to ParsedMemberDraft[]
+  const members: ParsedMemberDraft[] = [];
+  let idx = 0;
+  for (const [id, indi] of indis.entries()) {
+    idx++;
+    const generation = genMap.get(id) || 1;
+    const cleanCode = indi.code || (generation === 1 && idx === 1 ? 'I' : `G${generation}-${idx}`);
+
+    let parentCode: string | undefined = undefined;
+    if (indi.famc) {
+      const fam = fams.get(indi.famc);
+      if (fam) {
+        const parentId = fam.husb || fam.wife;
+        if (parentId) {
+          const parentIndi = indis.get(parentId);
+          parentCode = parentIndi?.code || parentId.replace(/@/g, '');
+        }
+      }
+    }
+
+    let spouseName: string | undefined = undefined;
+    let marriageDate: string | undefined = undefined;
+    let marriagePlace: string | undefined = undefined;
+    if (indi.fams.length > 0) {
+      const fam = fams.get(indi.fams[0]);
+      if (fam) {
+        marriageDate = fam.marrDate;
+        marriagePlace = fam.marrPlace;
+        const spouseId = fam.husb === id ? fam.wife : fam.husb;
+        if (spouseId) {
+          const spIndi = indis.get(spouseId);
+          spouseName = spIndi?.fullName || spIndi?.firstName;
+        }
+      }
+    }
+
+    const firstName = indi.firstName || indi.fullName?.split(' ')[0] || 'Unknown';
+    const lastName = indi.lastName || indi.fullName?.split(' ').slice(1).join(' ') || 'Unknown';
+    const fullName = indi.fullName || `${firstName} ${lastName}`.trim();
+
+    members.push({
+      tempId: id.replace(/@/g, ''),
+      code: cleanCode,
+      firstName,
+      lastName,
+      fullName,
+      gender: indi.gender,
+      generation,
+      parentCode,
+      branch: 'root',
+      birthDate: indi.birthDate,
+      birthYear: indi.birthYear,
+      birthPlace: indi.birthPlace,
+      deathDate: indi.deathDate,
+      deathYear: indi.deathYear,
+      deathPlace: indi.deathPlace,
+      occupation: indi.occupation,
+      spouseName,
+      marriageDate,
+      marriagePlace,
+      heritageTags: ['GEDCOM Import', 'FamilySearch Ecosystem'],
+      bio: indi.bio || '',
+      sourceUrl: sourceLabel,
+    });
+  }
+
+  const first = members[0];
+  return {
+    detectedFormat: 'gedcom',
+    suggestedTreeName: first?.lastName ? `${first.lastName} Lineage (GEDCOM)` : 'GEDCOM Family Tree',
+    suggestedSubtitle: `Parsed standard GEDCOM 5.5.1 from ${sourceLabel} (${members.length} members)`,
+    suggestedRegion: first?.birthPlace || 'Archival Lineage',
+    mappingNotes: [
+      `Parsed standard GEDCOM file (${indis.size} individuals, ${fams.size} family units).`,
+      'Mapped parent-child linkages via FAMC/CHIL tags automatically.',
+      'Extracted birth, death, marriage dates and places into interactive tree layout.',
+      'Fully compatible with FamilySearch Genealogies and Solutions Gallery partners.',
+    ],
+    rawSample: rawText.slice(0, 500),
     members,
   };
 }

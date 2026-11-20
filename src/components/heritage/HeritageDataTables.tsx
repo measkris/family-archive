@@ -25,6 +25,7 @@ import type { HeritageOriginRecord } from '@/lib/db/types';
 import type { OpenArchiveRecord } from '@/app/api/heritage/openarchives/route';
 import { useLanguage } from '@/components/i18n/LanguageContext';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const AncestralLocationsMap = dynamic(
   () => import('@/components/heritage/AncestralLocationsMap').then((m) => m.AncestralLocationsMap),
@@ -140,9 +141,25 @@ export function HeritageDataTables({
   const [placesLoading, setPlacesLoading] = useState(false);
   const [placesLoadedOnce, setPlacesLoadedOnce] = useState(false);
 
-  // 4. BrouwerTree Primary Sources Index
+  // 4. BrouwerTree & External Resources Index
+  const [resourceCategory, setResourceCategory] = useState<string>('all');
   const [archiveCategory, setArchiveCategory] = useState('all');
   const [archiveSearch, setArchiveSearch] = useState('');
+
+  const filteredResources = useMemo(() => {
+    if (resourceCategory === 'all') return FAMILY_TREE_RESOURCES;
+    if (resourceCategory === 'familysearch') {
+      return FAMILY_TREE_RESOURCES.filter(
+        (r) =>
+          r.provider.toLowerCase().includes('familysearch') ||
+          r.category === 'Research Tools' ||
+          r.id.includes('recordseek') ||
+          r.id.includes('rootsfinder') ||
+          r.id.includes('billiongraves')
+      );
+    }
+    return FAMILY_TREE_RESOURCES.filter((r) => r.category === resourceCategory);
+  }, [resourceCategory]);
 
   const enrichOrigins = useCallback(async (forceRefresh = false) => {
     setEnrichingOrigins(true);
@@ -909,18 +926,76 @@ export function HeritageDataTables({
 
         {/* TAB 4: Family Tree Resources & Primary Archival Citations */}
         <TabsContent value="sources" className="space-y-5">
+          {/* FamilySearch Solutions Gallery Callout Card */}
+          <div className="rounded-xl border border-sky-200 bg-linear-to-r from-sky-50/90 via-emerald-50/60 to-amber-50/50 p-4 sm:p-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="border-sky-300 bg-white text-[#0b4a68] font-bold text-[10px]">
+                    FamilySearch Ecosystem
+                  </Badge>
+                  <span className="text-[11px] font-semibold text-emerald-800">Free Open Resources &amp; Connectors</span>
+                </div>
+                <h3 className="font-heritage text-lg sm:text-xl font-bold text-stone-900">
+                  FamilySearch Solutions Gallery &amp; Global Tree Connections
+                </h3>
+                <p className="text-xs text-stone-600 max-w-3xl leading-relaxed">
+                  Discover free partner apps and tools featured in the FamilySearch Solutions Gallery. Connect your tree with <strong>RecordSeek</strong> (1-click source clipper), <strong>RootsFinder</strong> (cloud sync), <strong>BillionGraves</strong> (GPS cemetery markers), or export standard <strong>GEDCOM (.ged)</strong> directly to FamilySearch Genealogies.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href="https://www.familysearch.org/en/innovate/solutions-gallery/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0b4a68] hover:bg-[#08354b] px-3 py-2 text-xs font-semibold text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  Explore Solutions Gallery <ExternalLink className="size-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+
           {/* Curated External Research & Archive Resources for Jacob Lang & Maria Tampemawa */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="font-heritage text-2xl flex items-center gap-2">
-                <BookOpen className="size-5 text-[#73a922]" />
-                {t.familyResourcesTitle}
-              </CardTitle>
-              <CardDescription>{t.familyResourcesSubtitle}</CardDescription>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle className="font-heritage text-2xl flex items-center gap-2">
+                    <BookOpen className="size-5 text-[#73a922]" />
+                    {t.familyResourcesTitle}
+                  </CardTitle>
+                  <CardDescription>{t.familyResourcesSubtitle}</CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'familysearch', label: 'FamilySearch & Partners' },
+                    { id: 'Genealogy Tree', label: 'BrouwerTree' },
+                    { id: 'Civil Registry', label: 'Civil Registry' },
+                    { id: 'Research Tools', label: 'Tools & Memorials' },
+                    { id: 'Colonial Press', label: 'Colonial Press' },
+                  ].map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setResourceCategory(filter.id)}
+                      className={cn(
+                        'rounded-full px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
+                        resourceCategory === filter.id
+                          ? 'bg-[#0b4a68] text-white shadow-2xs'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      )}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {FAMILY_TREE_RESOURCES.map((res) => (
+                {filteredResources.map((res) => (
                   <a
                     key={res.id}
                     href={res.url}

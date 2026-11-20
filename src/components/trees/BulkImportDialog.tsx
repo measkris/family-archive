@@ -313,7 +313,7 @@ export function BulkImportDialog({
             Bulk Import Family Tree Data
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm text-stone-600">
-            Upload an Excel/CSV/JSON file using our template, or pull genealogy data from an external API/URL and inspect how it parses into a Family Tree Group before saving.
+            Upload an Excel/CSV/JSON file using our template, upload a standard GEDCOM (.ged) file from FamilySearch or Solutions Gallery apps, or pull genealogy data from an external API/URL.
           </DialogDescription>
         </DialogHeader>
 
@@ -329,7 +329,7 @@ export function BulkImportDialog({
             <TabsList className="grid w-full grid-cols-2 bg-stone-100">
               <TabsTrigger value="file" className="gap-1.5 text-xs sm:text-sm">
                 <Upload className="size-3.5" />
-                Upload Excel / CSV / JSON
+                Upload File (Excel / CSV / GEDCOM / JSON)
               </TabsTrigger>
               <TabsTrigger value="url" className="gap-1.5 text-xs sm:text-sm">
                 <Globe className="size-3.5" />
@@ -379,7 +379,7 @@ export function BulkImportDialog({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".xlsx,.xls,.csv,.json"
+                  accept=".xlsx,.xls,.csv,.json,.ged,.gedcom"
                   className="hidden"
                   onChange={(e) => {
                     const picked = e.target.files?.[0];
@@ -391,7 +391,7 @@ export function BulkImportDialog({
                 {isParsing ? (
                   <div className="flex flex-col items-center gap-2 py-2 text-stone-600">
                     <Loader2 className="size-6 animate-spin text-[#0b4a68]" />
-                    <span className="text-xs font-medium">Parsing spreadsheet / data structure...</span>
+                    <span className="text-xs font-medium">Parsing spreadsheet or GEDCOM structure...</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-1.5">
@@ -402,7 +402,7 @@ export function BulkImportDialog({
                         : 'Click to browse or drag & drop your file'}
                     </p>
                     <p className="text-xs text-stone-500">
-                      Supports `.xlsx`, `.xls`, `.csv`, and `.json` (max ~5 MB)
+                      Supports `.xlsx`, `.xls`, `.csv`, `.json`, and standard `.ged` (FamilySearch / Ancestry GEDCOM)
                     </p>
                   </div>
                 )}

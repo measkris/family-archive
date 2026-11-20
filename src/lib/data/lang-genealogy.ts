@@ -2121,7 +2121,7 @@ export interface FamilyExternalResource {
   id: string;
   title: string;
   provider: string;
-  category: 'Genealogy Tree' | 'Civil Registry' | 'Colonial Press' | 'Visual Archive' | 'War & Migration';
+  category: 'Genealogy Tree' | 'Civil Registry' | 'Colonial Press' | 'Visual Archive' | 'War & Migration' | 'Research Tools';
   region: string;
   description: string;
   url: string;
@@ -2253,6 +2253,70 @@ export const FAMILY_TREE_RESOURCES: FamilyExternalResource[] = [
     region: 'Manado, North Sulawesi, Indonesia',
     description: 'Microfilmed and indexed colonial civil records, church books, and lineage trees for Manado and Minahasa.',
     url: 'https://www.familysearch.org/en/wiki/Indonesia_Genealogy',
+  },
+  // ==================== FAMILYSEARCH SOLUTIONS GALLERY FREE TOOLS ====================
+  {
+    id: 'res-fs-indo-civil',
+    title: 'FamilySearch Indonesia Civil Registration 1806–1997 (Collection 1806941)',
+    provider: 'FamilySearch',
+    category: 'Civil Registry',
+    region: 'Dutch East Indies — Manado, Batavia, Ambon, Surabaya',
+    description: 'Flagship FamilySearch collection of colonial-era and post-independence civil births, marriages, and deaths in the Netherlands Indies and Indonesia. Searchable by name, place, and date.',
+    url: 'https://www.familysearch.org/search/collection/1806941',
+  },
+  {
+    id: 'res-fs-bloys-treslong',
+    title: 'P.C. Bloys van Treslong Prins — Dutch East Indies European Inhabitants',
+    provider: 'FamilySearch Library',
+    category: 'Civil Registry',
+    region: 'Dutch East Indies (all provinces)',
+    description: 'Monumental card catalog documenting European baptisms, marriages, deaths, wills, and notarial records across the entire Dutch East Indies colony.',
+    url: 'https://www.familysearch.org/catalog/search?term=bloys+van+treslong&type=title',
+  },
+  {
+    id: 'res-recordseek',
+    title: 'RecordSeek — 1-Click Source Citation Tool (Solutions Gallery)',
+    provider: 'RecordSeek / FamilySearch Partner',
+    category: 'Research Tools',
+    region: 'Global (Delpher, OpenArchives, FamilySearch, Ancestry)',
+    description: 'Featured FamilySearch Solutions Gallery browser extension. Clip any web record to FamilySearch sources without retyping. Supports Delpher, KITLV, OpenArchives, and WieWasWie.',
+    url: 'https://recordseek.com/',
+  },
+  {
+    id: 'res-billiongraves',
+    title: 'BillionGraves — GPS Cemetery Records (FamilySearch Certified Partner)',
+    provider: 'BillionGraves',
+    category: 'Research Tools',
+    region: 'Indonesia, Netherlands & Global',
+    description: 'World-wide GPS-tagged cemetery database and headstone photos fully integrated with FamilySearch Family Tree. Covers Ereveld Leuwigajah, Kembang Kuning, and Dutch colonial cemeteries.',
+    url: 'https://billiongraves.com/pages/search?given_names=Lang&family_names=Lang',
+  },
+  {
+    id: 'res-igv',
+    title: 'Indische Genealogische Vereniging (IGV) — Indies Lineage Journals',
+    provider: 'IGV / De Indische Navorscher',
+    category: 'Civil Registry',
+    region: 'Dutch East Indies — Minahasa, Moluccas, Java',
+    description: 'Authoritative Indies Genealogical Society publishing indices to colonial almanac births/marriages, cemetery registers, and the *De Indische Navorscher* journal. Essential for Minahasan-European lineages.',
+    url: 'https://igv.nl/',
+  },
+  {
+    id: 'res-findagrave',
+    title: 'Find A Grave — Memorial Search (Lang, Kuitert, Parera)',
+    provider: 'Find A Grave',
+    category: 'Research Tools',
+    region: 'Indonesia, Netherlands & Global',
+    description: 'Volunteer-indexed cemetery memorials and gravestone photos covering Dutch colonial cemeteries in Manado, Kema, and Tondano.',
+    url: 'https://www.findagrave.com/memorial/search?lastname=Lang',
+  },
+  {
+    id: 'res-rootsfinder',
+    title: 'RootsFinder — FamilySearch-Compatible Cloud Tree',
+    provider: 'RootsFinder',
+    category: 'Research Tools',
+    region: 'Global (FamilySearch Ecosystem)',
+    description: 'Free FamilySearch-compatible cloud tree that syncs directly with FamilySearch Family Tree. Import or link your Lang–Tampemawa data and collaborate with relatives globally.',
+    url: 'https://rootsfinder.com/',
   },
 ];
 

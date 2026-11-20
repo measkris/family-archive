@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   parseBrouwerTreeHtml,
+  parseGedcomString,
   parseJsonString,
   parseSpreadsheetBuffer,
 } from '@/lib/import/tree-parser';
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get('content-type') || '';
 
-    // Case 1: Multipart file upload (.xlsx, .xls, .csv, .json)
+    // Case 1: Multipart file upload (.xlsx, .xls, .csv, .json, .ged, .gedcom)
     if (contentType.includes('multipart/form-data')) {
       const fd = await request.formData();
       const file = fd.get('file');
@@ -18,6 +19,11 @@ export async function POST(request: NextRequest) {
       }
       const bytes = Buffer.from(await file.arrayBuffer());
       const lowerName = file.name.toLowerCase();
+
+      if (lowerName.endsWith('.ged') || lowerName.endsWith('.gedcom')) {
+        const result = parseGedcomString(bytes.toString('utf8'), file.name);
+        return NextResponse.json(result);
+      }
 
       if (lowerName.endsWith('.json')) {
         const result = parseJsonString(bytes.toString('utf8'), file.name);
@@ -34,7 +40,7 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json(
-        { error: 'Unsupported file type. Please upload .xlsx, .xls, .csv, or .json.' },
+        { error: 'Unsupported file type. Please upload .xlsx, .xls, .csv, .json, or .ged (GEDCOM).' },
         { status: 400 }
       );
     }
@@ -65,6 +71,15 @@ export async function POST(request: NextRequest) {
     }
 
     const ct = (res.headers.get('content-type') || '').toLowerCase();
+
+    if (
+      ct.includes('gedcom') ||
+      rawUrl.toLowerCase().endsWith('.ged') ||
+      rawUrl.toLowerCase().endsWith('.gedcom')
+    ) {
+      const text = await res.text();
+      return NextResponse.json(parseGedcomString(text, rawUrl));
+    }
 
     if (ct.includes('json') || rawUrl.toLowerCase().includes('.json')) {
       const text = await res.text();

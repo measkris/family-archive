@@ -110,6 +110,7 @@ export interface UiDictionary {
   // Members Directory Table
   completeDirectory: string;
   exportCsv: string;
+  exportGedcom: string;
   searchDirectoryPlaceholder: string;
   allGenerations: string;
   allBranches: string;
@@ -251,6 +252,7 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
 
     completeDirectory: 'Complete Family Directory',
     exportCsv: 'Export CSV',
+    exportGedcom: 'Export GEDCOM (.ged)',
     searchDirectoryPlaceholder: 'Search name, spouse, birthplace, occupation, or heritage...',
     allGenerations: 'All Generations',
     allBranches: 'All Branches',
@@ -392,6 +394,7 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
 
     completeDirectory: 'Direktori Lengkap Keluarga',
     exportCsv: 'Ekspor CSV',
+    exportGedcom: 'Ekspor GEDCOM (.ged)',
     searchDirectoryPlaceholder: 'Cari nama, pasangan, tempat lahir, pekerjaan, atau warisan...',
     allGenerations: 'Semua Generasi',
     allBranches: 'Semua Cabang',
@@ -533,6 +536,7 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
 
     completeDirectory: 'Volledig Persoonsregister',
     exportCsv: 'CSV Exporteren',
+    exportGedcom: 'GEDCOM Exporteren (.ged)',
     searchDirectoryPlaceholder: 'Zoek naam, partner, geboorteplaats, beroep of erfgoed...',
     allGenerations: 'Alle Generaties',
     allBranches: 'Alle Takken',
