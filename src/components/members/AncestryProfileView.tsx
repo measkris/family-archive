@@ -7,6 +7,7 @@ import {
   BookOpen,
   Briefcase,
   Camera,
+  Check,
   ChevronDown,
   ChevronRight,
   Compass,
@@ -26,6 +27,7 @@ import {
   Search,
   Sparkles,
   Star,
+  Tag,
   Trash2,
   Users,
   X,
@@ -36,7 +38,7 @@ import type { OpenArchiveRecord } from '@/app/api/heritage/openarchives/route';
 import { buildPersonSearchConnectors } from '@/lib/genealogy/search-connectors';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Input, Textarea } from '@/components/ui/input';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -173,6 +175,138 @@ export function AncestryProfileView({
 
   // Pre-filled 1-click external archive search connectors (FamilySearch Solutions Gallery & regional archives)
   const searchConnectors = useMemo(() => buildPersonSearchConnectors(member), [member]);
+
+  // Tab-specific editing states
+  const [editingLifeStory, setEditingLifeStory] = useState(false);
+  const [bioDraft, setBioDraft] = useState(member.bio || '');
+  const [occupationDraft, setOccupationDraft] = useState(member.occupation || '');
+  const [savingLifeStory, setSavingLifeStory] = useState(false);
+
+  const [editingHeritage, setEditingHeritage] = useState(false);
+  const [tagsDraft, setTagsDraft] = useState(member.heritageTags.join(', '));
+  const [regionDraft, setRegionDraft] = useState(member.region || '');
+  const [savingHeritage, setSavingHeritage] = useState(false);
+
+  const [addingSourceOpen, setAddingSourceOpen] = useState(false);
+  const [newSourceCitation, setNewSourceCitation] = useState('');
+  const [savingSource, setSavingSource] = useState(false);
+
+  const [prevMemberId, setPrevMemberId] = useState(member.id);
+  if (prevMemberId !== member.id) {
+    setPrevMemberId(member.id);
+    setBioDraft(member.bio || '');
+    setOccupationDraft(member.occupation || '');
+    setTagsDraft(member.heritageTags.join(', '));
+    setRegionDraft(member.region || '');
+    setEditingLifeStory(false);
+    setEditingHeritage(false);
+    setAddingSourceOpen(false);
+  }
+
+  function startEditingLifeStory() {
+    setBioDraft(member.bio || '');
+    setOccupationDraft(member.occupation || '');
+    setEditingLifeStory(true);
+  }
+
+  function startEditingHeritage() {
+    setTagsDraft(member.heritageTags.join(', '));
+    setRegionDraft(member.region || '');
+    setEditingHeritage(true);
+  }
+
+  async function handleSaveLifeStory() {
+    if (!canEdit) return;
+    setSavingLifeStory(true);
+    try {
+      const res = await authFetch(`/api/members/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bio: bioDraft.trim(),
+          occupation: occupationDraft.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (json.member) {
+        onPhotoUpdated(json.member);
+        setEditingLifeStory(false);
+      }
+    } catch (err) {
+      console.error('Failed to save LifeStory:', err);
+    } finally {
+      setSavingLifeStory(false);
+    }
+  }
+
+  async function handleSaveHeritage() {
+    if (!canEdit) return;
+    setSavingHeritage(true);
+    try {
+      const splitTags = tagsDraft
+        .split(/[,;|]/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const res = await authFetch(`/api/members/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          heritageTags: splitTags,
+          region: regionDraft.trim() || member.region,
+        }),
+      });
+      const json = await res.json();
+      if (json.member) {
+        onPhotoUpdated(json.member);
+        setEditingHeritage(false);
+      }
+    } catch (err) {
+      console.error('Failed to save heritage:', err);
+    } finally {
+      setSavingHeritage(false);
+    }
+  }
+
+  async function handleAddSource() {
+    if (!canEdit || !newSourceCitation.trim()) return;
+    setSavingSource(true);
+    try {
+      const updatedSources = [...(member.sources || []), newSourceCitation.trim()];
+      const res = await authFetch(`/api/members/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sources: updatedSources }),
+      });
+      const json = await res.json();
+      if (json.member) {
+        onPhotoUpdated(json.member);
+        setNewSourceCitation('');
+        setAddingSourceOpen(false);
+      }
+    } catch (err) {
+      console.error('Failed to add source:', err);
+    } finally {
+      setSavingSource(false);
+    }
+  }
+
+  async function handleDeleteSource(index: number) {
+    if (!canEdit) return;
+    const updatedSources = member.sources.filter((_, i) => i !== index);
+    try {
+      const res = await authFetch(`/api/members/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sources: updatedSources }),
+      });
+      const json = await res.json();
+      if (json.member) {
+        onPhotoUpdated(json.member);
+      }
+    } catch (err) {
+      console.error('Failed to delete source:', err);
+    }
+  }
 
   const parent = member.parentId
     ? allMembers.find((m) => m.id === member.parentId) || null
@@ -742,40 +876,73 @@ export function AncestryProfileView({
 
       {/* ========== ANCESTRY SUB-TAB BAR (White bar + Green underline) ========== */}
       <div className="border-b border-stone-300 bg-white">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-center sm:justify-start gap-6 overflow-x-auto">
-          {[
-            { id: 'facts', label: t.factsTab },
-            {
-              id: 'hints',
-              label: t.hintsTab,
-              count: hintsTotal > 0 ? hintsTotal : member.sources.length,
-            },
-            { id: 'gallery', label: t.galleryTab },
-            { id: 'lifestory', label: t.lifeStoryTab },
-            { id: 'heritage', label: t.heritageTab },
-          ].map((tab) => {
-            const active = subTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSubTab(tab.id as typeof subTab)}
-                className={cn(
-                  'relative py-3.5 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 border-b-[3px]',
-                  active
-                    ? 'border-[#73a922] text-[#222426]'
-                    : 'border-transparent text-stone-500 hover:text-stone-900'
-                )}
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-6 overflow-x-auto no-scrollbar py-0.5">
+            {[
+              { id: 'facts', label: t.factsTab },
+              {
+                id: 'hints',
+                label: t.hintsTab,
+                count: hintsTotal > 0 ? hintsTotal : member.sources.length,
+              },
+              { id: 'gallery', label: t.galleryTab },
+              { id: 'lifestory', label: t.lifeStoryTab },
+              { id: 'heritage', label: t.heritageTab },
+            ].map((tab) => {
+              const active = subTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSubTab(tab.id as typeof subTab)}
+                  className={cn(
+                    'relative py-3.5 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5 border-b-[3px]',
+                    active
+                      ? 'border-[#73a922] text-[#222426]'
+                      : 'border-transparent text-stone-500 hover:text-stone-900'
+                  )}
+                >
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className="rounded bg-[#73a922] px-1.5 py-0.2 text-[11px] font-bold text-white">
+                      {tab.count > 999 ? '999+' : tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {canEdit && (
+            <div className="flex items-center gap-2 py-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (subTab === 'lifestory') startEditingLifeStory();
+                  else if (subTab === 'heritage') startEditingHeritage();
+                  else if (subTab === 'hints') setAddingSourceOpen(true);
+                  else if (subTab === 'gallery') fileInputRef.current?.click();
+                  else onEditMember(member);
+                }}
+                className="h-8 gap-1.5 text-xs font-semibold border-stone-300 hover:border-[#73a922] hover:bg-[#f6faef] text-[#222426] cursor-pointer shadow-2xs"
               >
-                {tab.label}
-                {tab.count !== undefined && (
-                  <span className="rounded bg-[#73a922] px-1.5 py-0.2 text-[11px] font-bold text-white">
-                    {tab.count > 999 ? '999+' : tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                <Pencil className="size-3.5 text-[#73a922]" />
+                <span className="hidden sm:inline">
+                  {subTab === 'lifestory'
+                    ? t.editLifeStoryAction
+                    : subTab === 'heritage'
+                    ? t.editHeritageAction
+                    : subTab === 'hints'
+                    ? t.addSourceAction
+                    : subTab === 'gallery'
+                    ? t.uploadPhoto
+                    : t.editFactsAction}
+                </span>
+                <span className="sm:hidden">{t.editTabAction}</span>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1328,6 +1495,74 @@ export function AncestryProfileView({
                 );
               })}
             </div>
+
+            {/* Sources & Citations — editable list */}
+            {((member.sources && member.sources.length > 0) || canEdit) && (
+              <div className="rounded-lg border border-stone-300 bg-white p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-sm text-[#222426] flex items-center gap-2">
+                    <FileText className="size-4 text-[#73a922]" />
+                    Sources &amp; Citations
+                  </h3>
+                  {canEdit && !addingSourceOpen && (
+                    <Button size="sm" variant="outline" onClick={() => setAddingSourceOpen(true)}>
+                      <Plus className="size-3.5" /> {t.addSourceAction}
+                    </Button>
+                  )}
+                </div>
+
+                {member.sources && member.sources.length > 0 ? (
+                  <ul className="space-y-2">
+                    {member.sources.map((src, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start justify-between gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-700"
+                      >
+                        <span className="leading-relaxed flex-1">{src}</span>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSource(idx)}
+                            className="text-stone-400 hover:text-red-500 transition-colors shrink-0 mt-0.5"
+                            title="Remove source"
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-stone-400 italic">No citations added yet.</p>
+                )}
+
+                {addingSourceOpen && canEdit && (
+                  <div className="space-y-2 pt-1 border-t border-stone-200">
+                    <Input
+                      value={newSourceCitation}
+                      onChange={(e) => setNewSourceCitation(e.target.value)}
+                      placeholder="e.g. Burgerlijke Stand Manado 1872, Act No. 42 — ANRI Microfilm"
+                      className="text-xs"
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleAddSource(); }}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleAddSource} disabled={savingSource || !newSourceCitation.trim()}>
+                        {savingSource ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                        {t.saveChanges}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => { setAddingSourceOpen(false); setNewSourceCitation(''); }}
+                      >
+                        {t.cancelAction}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -1418,13 +1653,54 @@ export function AncestryProfileView({
               </p>
             </div>
 
-            <p className="text-base leading-relaxed text-stone-800">{member.bio}</p>
-
-            {member.occupation && (
-              <div className="rounded-lg bg-stone-50 border border-stone-200 p-4">
-                <div className="text-xs font-bold uppercase text-stone-500">Vocation &amp; Role</div>
-                <div className="text-sm font-medium text-stone-900 mt-1">{member.occupation}</div>
+            {editingLifeStory && canEdit ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-stone-600 uppercase tracking-wider">Biography</label>
+                  <Textarea
+                    value={bioDraft}
+                    onChange={(e) => setBioDraft(e.target.value)}
+                    className="mt-1.5 min-h-32"
+                    placeholder="Write the life story..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-stone-600 uppercase tracking-wider">Occupation / Role</label>
+                  <Input
+                    value={occupationDraft}
+                    onChange={(e) => setOccupationDraft(e.target.value)}
+                    className="mt-1.5"
+                    placeholder="e.g. Sea Captain &amp; Merchant"
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button size="sm" onClick={handleSaveLifeStory} disabled={savingLifeStory}>
+                    {savingLifeStory ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                    {t.saveChanges}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingLifeStory(false);
+                      setBioDraft(member.bio || '');
+                      setOccupationDraft(member.occupation || '');
+                    }}
+                  >
+                    {t.cancelAction}
+                  </Button>
+                </div>
               </div>
+            ) : (
+              <>
+                <p className="text-base leading-relaxed text-stone-800">{member.bio}</p>
+                {member.occupation && (
+                  <div className="rounded-lg bg-stone-50 border border-stone-200 p-4">
+                    <div className="text-xs font-bold uppercase text-stone-500">Vocation &amp; Role</div>
+                    <div className="text-sm font-medium text-stone-900 mt-1">{member.occupation}</div>
+                  </div>
+                )}
+              </>
             )}
 
             {member.spouses.length > 0 && (
@@ -1511,6 +1787,79 @@ export function AncestryProfileView({
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Editable Heritage Tags & Region */}
+            <div className="rounded-xl border border-stone-300 bg-white p-5 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base font-bold text-[#222426] flex items-center gap-2">
+                  <Tag className="size-4 text-[#73a922]" /> Heritage Tags &amp; Region
+                </h2>
+                {canEdit && !editingHeritage && (
+                  <Button size="sm" variant="outline" onClick={startEditingHeritage}>
+                    <Pencil className="size-3.5" /> {t.editHeritageAction}
+                  </Button>
+                )}
+              </div>
+
+              {editingHeritage && canEdit ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 uppercase tracking-wider">
+                      Tags <span className="font-normal text-stone-400 normal-case">(comma-separated)</span>
+                    </label>
+                    <Input
+                      value={tagsDraft}
+                      onChange={(e) => setTagsDraft(e.target.value)}
+                      className="mt-1.5 text-sm"
+                      placeholder="e.g. Indo-Minahasan, Tombariri Nobility, Direct Ancestor"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-600 uppercase tracking-wider">Region</label>
+                    <Input
+                      value={regionDraft}
+                      onChange={(e) => setRegionDraft(e.target.value)}
+                      className="mt-1.5 text-sm"
+                      placeholder="e.g. Tombariri &amp; Manado, North Sulawesi, Indonesia"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" onClick={handleSaveHeritage} disabled={savingHeritage}>
+                      {savingHeritage ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                      {t.saveChanges}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingHeritage(false);
+                        setTagsDraft(member.heritageTags.join(', '));
+                        setRegionDraft(member.region || '');
+                      }}
+                    >
+                      {t.cancelAction}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {member.heritageTags.map((tag) => (
+                      <Badge key={tag} variant="emerald" className="text-xs">{tag}</Badge>
+                    ))}
+                    {member.heritageTags.length === 0 && (
+                      <span className="text-xs text-stone-400 italic">No tags yet.</span>
+                    )}
+                  </div>
+                  {member.region && (
+                    <div className="flex items-center gap-1.5 text-xs text-stone-500">
+                      <MapPin className="size-3.5 text-[#73a922]" />
+                      {member.region}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

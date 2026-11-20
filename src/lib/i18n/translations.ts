@@ -101,6 +101,13 @@ export interface UiDictionary {
   galleryTab: string;
   lifeStoryTab: string;
   heritageTab: string;
+  editTabAction: string;
+  editLifeStoryAction: string;
+  editHeritageAction: string;
+  editFactsAction: string;
+  addSourceAction: string;
+  saveChanges: string;
+  cancelAction: string;
   ancestralMapLocation: string;
   timelineTitle: string;
   familyMembersTitle: string;
@@ -244,6 +251,13 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
     galleryTab: 'Gallery',
     lifeStoryTab: 'LifeStory',
     heritageTab: 'Heritage',
+    editTabAction: 'Edit',
+    editLifeStoryAction: 'Edit LifeStory & Role',
+    editHeritageAction: 'Edit Heritage & Tags',
+    editFactsAction: 'Edit Facts & Vitals',
+    addSourceAction: 'Add Source Citation',
+    saveChanges: 'Save Changes',
+    cancelAction: 'Cancel',
     ancestralMapLocation: 'Ancestral Location on Map',
     timelineTitle: 'Life Events & Timeline',
     familyMembersTitle: 'Family Members',
@@ -386,6 +400,13 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
     galleryTab: 'Galeri',
     lifeStoryTab: 'Kisah Hidup',
     heritageTab: 'Warisan',
+    editTabAction: 'Ubah',
+    editLifeStoryAction: 'Ubah Kisah Hidup & Peran',
+    editHeritageAction: 'Ubah Tag Warisan & Wilayah',
+    editFactsAction: 'Ubah Fakta & Data Vital',
+    addSourceAction: 'Tambah Sumber Kutipan',
+    saveChanges: 'Simpan Perubahan',
+    cancelAction: 'Batal',
     ancestralMapLocation: 'Lokasi Leluhur di Peta',
     timelineTitle: 'Peristiwa & Linimasa Kehidupan',
     familyMembersTitle: 'Anggota Keluarga',
@@ -528,6 +549,13 @@ export const UI_TRANSLATIONS: Record<AppLocale, UiDictionary> = {
     galleryTab: 'Galerij',
     lifeStoryTab: 'Levensverhaal',
     heritageTab: 'Erfgoed',
+    editTabAction: 'Bewerken',
+    editLifeStoryAction: 'Levensverhaal & Beroep Bewerken',
+    editHeritageAction: 'Erfgoedtags & Regio Bewerken',
+    editFactsAction: 'Feiten & Gegevens Bewerken',
+    addSourceAction: 'Bronvermelding Toevoegen',
+    saveChanges: 'Wijzigingen Opslaan',
+    cancelAction: 'Annuleren',
     ancestralMapLocation: 'Voorouderlijke Locatie op Kaart',
     timelineTitle: 'Levensgebeurtenissen & Tijdlijn',
     familyMembersTitle: 'Familieleden',
