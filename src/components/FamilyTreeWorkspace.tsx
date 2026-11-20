@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import {
   Camera,
   CheckCircle2,
+  ChevronDown,
   Crown,
   FileSpreadsheet,
   FolderTree,
@@ -274,6 +275,19 @@ function FamilyTreeWorkspaceInner({
   const [activeTreeSlide, setActiveTreeSlide] = useState(0);
   const ancestorsCarouselRef = React.useRef<HTMLDivElement>(null);
   const [activeAncestorDot, setActiveAncestorDot] = useState(0);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!accountMenuOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [accountMenuOpen]);
 
   // Sync visible trees & members whenever signed-in account changes
   React.useEffect(() => {
@@ -530,8 +544,6 @@ function FamilyTreeWorkspaceInner({
 
           {/* Right Global Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <LanguageToggle />
-
             <span className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600">
               <FolderTree className="size-3.5 text-[#0b4a68]" />
               <span>
@@ -584,28 +596,90 @@ function FamilyTreeWorkspaceInner({
                   </Button>
                 )}
 
-                <div className="flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 p-1 sm:pl-2 sm:pr-1.5">
-                  {user.isSuperAdmin && (
-                    <span
-                      title="Super Admin — Full Edit Access Across All Trees"
-                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold text-amber-900"
-                    >
-                      <Crown className="size-3 text-amber-700" />
-                      <span className="hidden sm:inline">{t.superAdmin}</span>
-                    </span>
-                  )}
-                  <span className="hidden lg:inline text-xs font-medium text-stone-700 max-w-[140px] truncate px-1">
-                    {user.displayName || user.email}
-                  </span>
+                {/* Compact Account Dropdown */}
+                <div ref={accountMenuRef} className="relative">
                   <button
                     type="button"
-                    onClick={() => void signOut()}
-                    title={`${t.signOut} (${user.email})`}
-                    className="inline-flex items-center gap-1 rounded-full bg-white hover:bg-rose-50 border border-stone-200 px-2 py-1 text-[11px] font-medium text-stone-700 hover:text-rose-700 transition-colors cursor-pointer"
+                    onClick={() => setAccountMenuOpen((o) => !o)}
+                    aria-expanded={accountMenuOpen}
+                    title={user.displayName || user.email}
+                    className="inline-flex h-8 sm:h-9 items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 hover:bg-stone-100 pl-1 pr-2 text-xs font-medium text-stone-800 transition-colors cursor-pointer"
                   >
-                    <LogOut className="size-3" />
-                    <span className="hidden sm:inline">{t.signOut}</span>
+                    <span
+                      className={cn(
+                        'flex size-6 sm:size-7 items-center justify-center rounded-full text-[11px] font-bold shrink-0',
+                        user.isSuperAdmin
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : 'bg-[#0b4a68] text-white'
+                      )}
+                    >
+                      {user.isSuperAdmin ? (
+                        <Crown className="size-3.5 text-amber-700" />
+                      ) : (
+                        (user.displayName || user.email).slice(0, 1).toUpperCase()
+                      )}
+                    </span>
+                    <span className="hidden sm:inline max-w-[96px] truncate">
+                      {user.displayName || user.email.split('@')[0]}
+                    </span>
+                    <ChevronDown className="size-3.5 text-stone-500 shrink-0" />
                   </button>
+
+                  {accountMenuOpen && (
+                    <div className="absolute right-0 top-10 z-50 w-56 rounded-xl border border-stone-200 bg-white shadow-xl p-1.5 text-xs animate-fade-in">
+                      <div className="px-2.5 py-2 border-b border-stone-100 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-stone-900 truncate">
+                            {user.displayName || user.email.split('@')[0]}
+                          </span>
+                          {user.isSuperAdmin && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 shrink-0">
+                              <Crown className="size-2.5 text-amber-700" />
+                              {t.superAdmin}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-stone-500 truncate">{user.email}</div>
+                      </div>
+
+                      <div className="py-1 space-y-0.5 md:hidden">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAccountMenuOpen(false);
+                            setBulkImportOpen(true);
+                          }}
+                          className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-stone-700 hover:bg-stone-100 cursor-pointer"
+                        >
+                          <FileSpreadsheet className="size-3.5 text-[#73a922]" />
+                          {t.bulkImport}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAccountMenuOpen(false);
+                            setCreateTreeOpen(true);
+                          }}
+                          className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-stone-700 hover:bg-stone-100 cursor-pointer"
+                        >
+                          <GitBranch className="size-3.5 text-[#0b4a68]" />
+                          {t.newFamilyTree}
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAccountMenuOpen(false);
+                          void signOut();
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left font-medium text-rose-700 hover:bg-rose-50 cursor-pointer"
+                      >
+                        <LogOut className="size-3.5" />
+                        {t.signOut}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -625,6 +699,8 @@ function FamilyTreeWorkspaceInner({
                 </Button>
               </>
             )}
+
+            <LanguageToggle />
           </div>
         </div>
       </header>
