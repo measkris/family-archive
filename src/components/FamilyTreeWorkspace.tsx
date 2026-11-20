@@ -6,7 +6,6 @@ import {
   Camera,
   CheckCircle2,
   Crown,
-  ExternalLink,
   FileSpreadsheet,
   FolderTree,
   GitBranch,
@@ -847,17 +846,6 @@ function FamilyTreeWorkspaceInner({
                             {t.shareButton}
                             {(tree.collaborators?.length || 0) > 0 ? ` (${tree.collaborators!.length})` : ''}
                           </button>
-                        )}
-                        {tree.sourceUrl && (
-                          <a
-                            href={tree.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[#0b4a68] hover:underline font-medium truncate max-w-[130px]"
-                          >
-                            {tree.sourceLabel || 'Source'} <ExternalLink className="size-2.5 shrink-0" />
-                          </a>
                         )}
                       </div>
                     </div>
