@@ -622,7 +622,12 @@ function FamilyTreeWorkspaceInner({
                     <span className="hidden sm:inline max-w-[96px] truncate">
                       {user.displayName || user.email.split('@')[0]}
                     </span>
-                    <ChevronDown className="size-3.5 text-stone-500 shrink-0" />
+                    <ChevronDown
+                      className={cn(
+                        'size-3.5 text-stone-500 shrink-0 transition-transform duration-200 ease-in-out',
+                        accountMenuOpen && 'rotate-180'
+                      )}
+                    />
                   </button>
 
                   {accountMenuOpen && (

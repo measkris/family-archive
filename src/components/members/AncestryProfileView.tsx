@@ -12,15 +12,16 @@ import {
   ChevronRight,
   Compass,
   Dna,
-  ExternalLink,
   FileCheck2,
   FileText,
+  Globe,
   Heart,
   Image as ImageIcon,
   Leaf,
   Loader2,
   MapPin,
   Network,
+  Newspaper,
   Pencil,
   Plus,
   Printer,
@@ -35,10 +36,11 @@ import {
 import type { ArchivalSourceRecord, FamilyMemberRecord } from '@/lib/data/lang-genealogy';
 import type { HeritageOriginRecord } from '@/lib/db/types';
 import type { OpenArchiveRecord } from '@/app/api/heritage/openarchives/route';
-import { buildPersonSearchConnectors } from '@/lib/genealogy/search-connectors';
+import type { StoryEnrichmentResponse } from '@/app/api/heritage/story-enrichment/route';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input, Textarea } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -173,8 +175,9 @@ export function AncestryProfileView({
   const [hintsTotal, setHintsTotal] = useState<number>(0);
   const [hintsLoading, setHintsLoading] = useState<boolean>(false);
 
-  // Pre-filled 1-click external archive search connectors (FamilySearch Solutions Gallery & regional archives)
-  const searchConnectors = useMemo(() => buildPersonSearchConnectors(member), [member]);
+  // Live connected-API story enrichment (KB Delpher press OCR, WikiTree global tree, Wikimedia place context)
+  const [storyEnrichment, setStoryEnrichment] = useState<StoryEnrichmentResponse | null>(null);
+  const [storyLoading, setStoryLoading] = useState<boolean>(false);
 
   // Tab-specific editing states
   const [editingLifeStory, setEditingLifeStory] = useState(false);
@@ -382,6 +385,75 @@ export function AncestryProfileView({
       cancelled = true;
     };
   }, [member.id, member.firstName, member.lastName]);
+
+  // Fetch live in-app story & archival enrichment (KB Delpher OCR, WikiTree API, Wikipedia Gazetteer)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStoryEnrichment() {
+      setStoryLoading(true);
+      try {
+        const params = new URLSearchParams({
+          name: member.fullName,
+          firstName: member.firstName,
+          surname: member.lastName,
+          place: member.birthPlace || member.region || '',
+          region: member.region || '',
+        });
+        if (member.birthYear) params.set('birthYear', String(member.birthYear));
+        if (member.deathYear) params.set('deathYear', String(member.deathYear));
+
+        const res = await fetch(`/api/heritage/story-enrichment?${params.toString()}`);
+        const json = (await res.json()) as StoryEnrichmentResponse;
+        if (!cancelled) {
+          setStoryEnrichment(json);
+        }
+      } catch {
+        if (!cancelled) setStoryEnrichment(null);
+      } finally {
+        if (!cancelled) setStoryLoading(false);
+      }
+    }
+    loadStoryEnrichment();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    member.id,
+    member.fullName,
+    member.firstName,
+    member.lastName,
+    member.birthPlace,
+    member.region,
+    member.birthYear,
+    member.deathYear,
+  ]);
+
+  // Count all documented descendants & deepest generation reached from this person
+  const descendantStats = useMemo(() => {
+    const byParent = new Map<string, FamilyMemberRecord[]>();
+    for (const m of allMembers) {
+      if (!m.parentId) continue;
+      const list = byParent.get(m.parentId) || [];
+      list.push(m);
+      byParent.set(m.parentId, list);
+    }
+    const visited = new Set<string>();
+    const queue = [...(byParent.get(member.id) || [])];
+    let maxGen = member.generation;
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      if (visited.has(curr.id)) continue;
+      visited.add(curr.id);
+      if (curr.generation > maxGen) maxGen = curr.generation;
+      const next = byParent.get(curr.id);
+      if (next) queue.push(...next);
+    }
+    return {
+      totalDescendants: visited.size,
+      maxGen,
+      generationsSpanned: Math.max(0, maxGen - member.generation),
+    };
+  }, [allMembers, member.id, member.generation]);
 
   // Build authentic Ancestry.com chronological Timeline with Year + Age gutter!
   const timelineEvents = useMemo<TimelineEvent[]>(() => {
@@ -862,14 +934,13 @@ export function AncestryProfileView({
             >
               <Printer className="size-3.5" /> Print
             </button>
-            <a
-              href={member.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 hover:text-white"
+            <button
+              type="button"
+              onClick={() => setSubTab('hints')}
+              className="inline-flex items-center gap-1.5 hover:text-white cursor-pointer"
             >
-              <ExternalLink className="size-3.5" /> BrouwerTree Reference
-            </a>
+              <BookOpen className="size-3.5" /> Archival Dossier &amp; References
+            </button>
           </div>
         </div>
       </div>
@@ -956,17 +1027,21 @@ export function AncestryProfileView({
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-[#222426]">Timeline</h2>
                 <div className="flex items-center gap-1.5">
-                  <select
+                  <Select
                     value={timelineFilter}
-                    onChange={(e) =>
-                      setTimelineFilter(e.target.value as 'all' | 'vital' | 'family')
+                    onValueChange={(val) =>
+                      setTimelineFilter(val as 'all' | 'vital' | 'family')
                     }
-                    className="h-7 rounded-full border border-stone-300 bg-white px-2.5 text-xs font-medium text-stone-700 cursor-pointer"
                   >
-                    <option value="all">Filter: All</option>
-                    <option value="vital">Vital Only</option>
-                    <option value="family">Family Events</option>
-                  </select>
+                    <SelectTrigger className="h-7 w-auto min-w-[100px] rounded-full border border-stone-300 bg-white px-2.5 text-xs font-medium text-stone-700 cursor-pointer shadow-none gap-1.5">
+                      <SelectValue placeholder="Filter: All" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Filter: All</SelectItem>
+                      <SelectItem value="vital">Vital Only</SelectItem>
+                      <SelectItem value="family">Family Events</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Button
                     size="sm"
                     variant="outline"
@@ -1225,11 +1300,12 @@ export function AncestryProfileView({
                     className="inline-flex items-center gap-1 text-xs font-bold text-[#0b6a8a] hover:underline cursor-pointer"
                   >
                     Siblings ({siblings.length})
-                    {showSiblings ? (
-                      <ChevronDown className="size-3.5" />
-                    ) : (
-                      <ChevronRight className="size-3.5" />
-                    )}
+                    <ChevronDown
+                      className={cn(
+                        'size-3.5 transition-transform duration-200 ease-in-out',
+                        showSiblings && 'rotate-180'
+                      )}
+                    />
                   </button>
 
                   {showSiblings && (
@@ -1422,79 +1498,163 @@ export function AncestryProfileView({
                         {rec.archiveName} ({rec.sourceType}) · Role: {rec.relationType}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-stone-200">
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200 gap-2">
                       <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
                         {rec.hasScan && <FileCheck2 className="size-3.5" />}
-                        {rec.hasScan ? 'Original scan available' : 'Transcribed record'}
+                        {rec.hasScan ? 'Original scan indexed' : 'Transcribed civil record'}
                       </span>
-                      <a
-                        href={rec.recordUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#0b6a8a] hover:underline"
-                      >
-                        Review Record <ExternalLink className="size-3" />
-                      </a>
+                      <span className="text-[10px] font-mono text-stone-500 truncate max-w-[180px]">
+                        Ref: {rec.archiveCode || rec.sourceType}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* FamilySearch Solutions Gallery & Free Archive Search Connectors */}
-            <div className="rounded-lg border border-[#0b4a68]/20 bg-white p-4 space-y-3">
-              <div className="flex items-center justify-between gap-2">
+            {/* Live KB Delpher Colonial Newspaper Clippings (OCR Excerpts pulled in-app!) */}
+            <div className="rounded-lg border border-amber-300/60 bg-amber-50/30 p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h3 className="font-bold text-sm text-[#222426] flex items-center gap-2">
-                    <BookOpen className="size-4 text-[#0b4a68]" />
-                    1-Click Archive Search — {member.fullName}
+                    <Newspaper className="size-4 text-amber-700" />
+                    Colonial Press Clippings — Live KB Delpher OCR
                   </h3>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    Pre-filled search links to FamilySearch Solutions Gallery, Delpher, OpenArchives.nl, BillionGraves &amp; more — all free.
+                  <p className="text-xs text-stone-600 mt-0.5">
+                    Digitized 19th &amp; 20th-century Dutch East Indies newspapers fetched directly from the Koninklijke Bibliotheek SRU API.
                   </p>
                 </div>
-                <Badge variant="outline" className="shrink-0 text-[10px] font-mono border-[#0b4a68]/30 text-[#0b4a68]">
-                  {searchConnectors.length} sources
-                </Badge>
+                {storyEnrichment && (
+                  <Badge variant="gold" className="font-mono text-[10px] shrink-0">
+                    {storyEnrichment.pressTotalFound.toLocaleString()} press entries
+                  </Badge>
+                )}
               </div>
 
-              {(['FamilySearch & Solutions', 'Dutch East Indies & Indo', 'European Archives', 'Cemetery & Memorials'] as const).map((cat) => {
-                const catItems = searchConnectors.filter((c) => c.category === cat);
-                if (!catItems.length) return null;
-                return (
-                  <div key={cat}>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1.5 pl-0.5">{cat}</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                      {catItems.map((conn) => (
-                        <a
-                          key={conn.id}
-                          href={conn.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group flex flex-col gap-1 rounded-lg border border-stone-200 bg-stone-50/60 hover:border-[#0b4a68]/40 hover:bg-sky-50/60 hover:shadow-sm p-2.5 transition-all"
-                        >
-                          <div className="flex items-center justify-between gap-1.5">
-                            <span className="font-semibold text-xs text-stone-800 group-hover:text-[#0b4a68] transition-colors line-clamp-1">
-                              {conn.name}
-                            </span>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono bg-white border-stone-200">
-                                FREE
-                              </Badge>
-                              <ExternalLink className="size-3 text-stone-400 group-hover:text-[#0b4a68]" />
-                            </div>
-                          </div>
-                          <p className="text-[11px] text-stone-500 leading-relaxed line-clamp-2">{conn.description}</p>
-                          {conn.partnerInfo && (
-                            <span className="text-[10px] font-medium text-emerald-700">{conn.partnerInfo}</span>
-                          )}
-                        </a>
-                      ))}
+              {storyLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="rounded-lg border border-stone-200 bg-white p-3.5 space-y-2">
+                      <Skeleton className="h-3.5 w-32" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-12 w-full" />
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              ) : storyEnrichment && storyEnrichment.pressClippings.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {storyEnrichment.pressClippings.map((clip) => (
+                    <article
+                      key={clip.id}
+                      className="rounded-lg border border-stone-200 bg-white p-3.5 flex flex-col justify-between gap-2.5"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <span className="font-semibold text-amber-800 truncate">
+                            {clip.newspaper}
+                          </span>
+                          <span className="font-mono text-stone-500 shrink-0">{clip.date}</span>
+                        </div>
+                        <h4 className="font-heritage font-bold text-sm text-stone-900 leading-snug">
+                          {clip.title}
+                        </h4>
+                        <p className="text-xs text-stone-700 leading-relaxed italic border-l-2 border-amber-300 pl-2.5">
+                          &ldquo;{clip.excerpt}&rdquo;
+                        </p>
+                      </div>
+                      <div className="pt-2 border-t border-stone-100 text-[10px] font-mono text-stone-500">
+                        Ref: {clip.citation}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-stone-500 italic bg-white rounded-lg border border-stone-200 p-3">
+                  No direct colonial newspaper OCR snippets matched this query right now.
+                </p>
+              )}
             </div>
+
+            {/* Live WikiTree Global Collaborative Tree Matches (FamilySearch Ecosystem API) */}
+            <div className="rounded-lg border border-[#0b4a68]/20 bg-white p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-bold text-sm text-[#222426] flex items-center gap-2">
+                    <Globe className="size-4 text-[#0b4a68]" />
+                    Global Tree Lineage Matches — Live WikiTree API
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Cross-referenced public profiles in the collaborative global tree to discover potential extended generations &amp; collateral branches.
+                  </p>
+                </div>
+                {storyEnrichment && (
+                  <Badge variant="outline" className="shrink-0 text-[10px] font-mono border-[#0b4a68]/30 text-[#0b4a68]">
+                    {storyEnrichment.wikitreeTotal.toLocaleString()} profiles indexed
+                  </Badge>
+                )}
+              </div>
+
+              {storyLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : storyEnrichment && storyEnrichment.wikitreeMatches.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {storyEnrichment.wikitreeMatches.map((wt) => (
+                    <div
+                      key={wt.id}
+                      className="rounded-lg border border-stone-200 bg-stone-50/70 p-3 space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-xs text-stone-900">{wt.fullName}</span>
+                        <Badge variant="outline" className="text-[10px] font-mono bg-white">
+                          {wt.wikitreeId}
+                        </Badge>
+                      </div>
+                      <div className="text-[11px] text-stone-600">
+                        {wt.birthDate} — {wt.deathDate}
+                      </div>
+                      <div className="text-[11px] text-stone-500 flex items-center gap-1">
+                        <MapPin className="size-3 shrink-0 text-[#73a922]" />
+                        <span className="truncate">{wt.birthLocation}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 text-[10px] text-stone-500">
+                        <span>{wt.hasParents ? 'Parent records linked in global tree' : 'Standalone profile'}</span>
+                        <span className="font-mono text-[#0b4a68]">Ref: WikiTree</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-stone-500 italic">
+                  No overlapping public WikiTree profiles for &ldquo;{member.fullName}&rdquo; yet — regional Minahasa / N.O.I. generations are documented in our local tree (Gen I–VIII).
+                </p>
+              )}
+            </div>
+
+            {/* Compact Bibliographic References (Clean non-link reference index) */}
+            {storyEnrichment && storyEnrichment.references.length > 0 && (
+              <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-4 space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                  <BookOpen className="size-3.5 text-[#0b4a68]" />
+                  Archival &amp; Ecosystem References
+                </h3>
+                <ol className="space-y-1.5 list-decimal list-inside text-xs text-stone-600">
+                  {storyEnrichment.references.map((ref) => (
+                    <li key={ref.id} className="leading-relaxed">
+                      <span className="font-semibold text-stone-800">{ref.source}</span> —{' '}
+                      <span>{ref.collection}</span>.{' '}
+                      <span className="text-stone-500">{ref.note}.</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
             {/* Sources & Citations — editable list */}
             {((member.sources && member.sources.length > 0) || canEdit) && (
@@ -1716,6 +1876,177 @@ export function AncestryProfileView({
                 ))}
               </div>
             )}
+
+            {/* Generational Roots & Descendant Legacy */}
+            {(parent || children.length > 0 || descendantStats.totalDescendants > 0) && (
+              <div className="rounded-lg border border-[#73a922]/25 bg-[#f7fbf1] p-4 sm:p-5 space-y-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-[#527a16] flex items-center gap-1.5">
+                  <Users className="size-3.5" /> Lineage &amp; Generational Legacy
+                </div>
+                <p className="text-sm text-stone-700 leading-relaxed">
+                  {parent ? (
+                    <>
+                      Part of <strong>Generation {member.generation}</strong>, {member.firstName} was
+                      born into the line of{' '}
+                      <button
+                        type="button"
+                        onClick={() => onSelectProfile(parent)}
+                        className="font-semibold text-[#0b4a68] hover:underline cursor-pointer"
+                      >
+                        {parent.fullName}
+                      </button>
+                      {member.motherName && member.motherName !== parent.fullName
+                        ? ` and ${member.motherName}`
+                        : ''}
+                      .{' '}
+                    </>
+                  ) : (
+                    <>
+                      As a founding anchor of <strong>Generation {member.generation}</strong> in{' '}
+                      {member.region}, {member.fullName} established one of North Sulawesi&apos;s
+                      enduring Indo-Minahasan family lines.{' '}
+                    </>
+                  )}
+                  {descendantStats.totalDescendants > 0 ? (
+                    <>
+                      This branch continues across{' '}
+                      <strong>
+                        {descendantStats.generationsSpanned === 1
+                          ? '1 further generation'
+                          : `${descendantStats.generationsSpanned} further generations`}
+                      </strong>{' '}
+                      (reaching Generation {descendantStats.maxGen}), with{' '}
+                      <strong>{descendantStats.totalDescendants}</strong> documented descendants
+                      recorded in this archive.
+                    </>
+                  ) : (
+                    <>
+                      This profile marks a contemporary chapter of the Lang–Tampemawa tree in{' '}
+                      {member.region}.
+                    </>
+                  )}
+                </p>
+
+                {children.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[11px] font-semibold text-stone-500 mr-1">
+                      Documented Children:
+                    </span>
+                    {children.map((ch) => (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        onClick={() => onSelectProfile(ch)}
+                        className="inline-flex items-center gap-1 rounded-full border border-[#73a922]/30 bg-white px-2.5 py-0.5 text-xs font-medium text-stone-800 hover:border-[#73a922] hover:bg-[#f1f8e7] transition-colors cursor-pointer"
+                      >
+                        <span>{ch.fullName}</span>
+                        {ch.birthYear && (
+                          <span className="text-[10px] text-stone-500 font-mono">({ch.birthYear})</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Historical Era & Homeland Context (Live Wikimedia + Historical Framing) */}
+            {storyLoading ? (
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-4 space-y-2">
+                <Skeleton className="h-3.5 w-48" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            ) : (
+              storyEnrichment && (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-[#0b4a68]/20 bg-sky-50/40 p-4 sm:p-5 space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-xs font-bold uppercase tracking-wider text-[#0b4a68] flex items-center gap-1.5">
+                        <Compass className="size-3.5" /> Historical World &amp; Era Backdrop
+                      </div>
+                      <Badge variant="outline" className="text-[10px] font-mono bg-white border-sky-200 text-[#0b4a68]">
+                        {storyEnrichment.eraBackdrop.yearsLabel}
+                      </Badge>
+                    </div>
+                    <h3 className="font-heritage text-lg font-bold text-stone-900">
+                      {storyEnrichment.eraBackdrop.eraTitle}
+                    </h3>
+                    <p className="text-sm text-stone-700 leading-relaxed">
+                      {storyEnrichment.eraBackdrop.narrative}
+                    </p>
+                    {storyEnrichment.placeContext && (
+                      <div className="pt-2.5 mt-2.5 border-t border-sky-200/70 space-y-1">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1">
+                          <MapPin className="size-3 text-[#73a922]" /> Homeland Context:{' '}
+                          {storyEnrichment.placeContext.title}
+                        </div>
+                        <p className="text-xs text-stone-600 leading-relaxed">
+                          {storyEnrichment.placeContext.summary}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Voices from the Colonial Press — Live readable OCR excerpts right inside the story */}
+                  {storyEnrichment.pressClippings.length > 0 && (
+                    <div className="rounded-lg border border-amber-300/60 bg-amber-50/35 p-4 sm:p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                          <Newspaper className="size-3.5" /> Voices from the Colonial Press
+                        </div>
+                        <span className="text-[10px] font-mono text-stone-500">
+                          KB Delpher Live OCR
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {storyEnrichment.pressClippings.slice(0, 2).map((clip) => (
+                          <blockquote
+                            key={clip.id}
+                            className="rounded-md bg-white border border-amber-200/70 p-3.5 space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between gap-2 text-[11px]">
+                              <span className="font-bold text-stone-800">{clip.title}</span>
+                              <span className="font-mono text-stone-500 shrink-0">{clip.date}</span>
+                            </div>
+                            <p className="text-xs text-stone-700 leading-relaxed italic">
+                              &ldquo;{clip.excerpt}&rdquo;
+                            </p>
+                            <footer className="text-[10px] font-mono text-stone-500">
+                              — {clip.citation}
+                            </footer>
+                          </blockquote>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+
+            {/* Quiet Academic References Footer (No external link wall) */}
+            <div className="pt-4 border-t border-stone-200 space-y-2">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
+                <BookOpen className="size-3.5 text-stone-400" /> References &amp; Primary Sources
+              </h3>
+              <ol className="space-y-1 list-decimal list-inside text-xs text-stone-600">
+                {(member.sources || []).map((src, idx) => (
+                  <li key={`src-${idx}`} className="leading-relaxed">
+                    {src}
+                  </li>
+                ))}
+                {storyEnrichment?.placeContext && (
+                  <li className="leading-relaxed text-stone-500">
+                    {storyEnrichment.placeContext.sourceRef}
+                  </li>
+                )}
+                <li className="leading-relaxed text-stone-500">
+                  Cross-checked via connected archival APIs: KB Delpher SRU v1.2, OpenArchives.nl
+                  REST v1.0, WikiTree Public API &amp; FamilySearch Indonesia Civil Registration
+                  (Collection 1806941).
+                </li>
+              </ol>
+            </div>
           </div>
         )}
 

@@ -303,17 +303,36 @@ export class FirebaseDatabaseAdapter implements DatabaseAdapter {
 
     let members: FamilyMemberRecord[];
     if (membersSnap.empty) {
-      members = INITIAL_MEMBERS.map((m) =>
-        normalizeMember(JSON.parse(JSON.stringify(m))),
+      members = INITIAL_MEMBERS.map(
+        (m) => JSON.parse(JSON.stringify(normalizeMember(m))) as FamilyMemberRecord,
       );
       for (const m of members) {
         batch.set(doc(db, "family_members", m.id), m);
         ops++;
       }
     } else {
-      members = sortMembers(
-        membersSnap.docs.map((d) => d.data() as FamilyMemberRecord),
+      const existing = membersSnap.docs.map(
+        (d) => d.data() as FamilyMemberRecord,
       );
+      const existingIds = new Set(existing.map((m) => m.id));
+      // One-time upgrade: if Firestore only has Gen I–IV seed records for the default tree,
+      // add the newly verified Gen IV–VIII lineage members without overwriting any existing docs.
+      const hasExpandedGenerations = existing.some(
+        (m) => (m.treeId || DEFAULT_TREE_ID) === DEFAULT_TREE_ID && m.generation >= 5,
+      );
+      if (!hasExpandedGenerations) {
+        for (const seed of INITIAL_MEMBERS) {
+          if (!existingIds.has(seed.id)) {
+            const normalized = JSON.parse(
+              JSON.stringify(normalizeMember(seed)),
+            ) as FamilyMemberRecord;
+            batch.set(doc(db, "family_members", normalized.id), normalized);
+            existing.push(normalized);
+            ops++;
+          }
+        }
+      }
+      members = sortMembers(existing);
     }
 
     // Separate real archival_records from any fallback tree group metadata docs

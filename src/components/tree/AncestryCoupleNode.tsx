@@ -2,7 +2,7 @@
 
 import React, { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { ChevronDown, ChevronUp, Dna, Leaf } from 'lucide-react';
+import { ChevronDown, Dna, Leaf } from 'lucide-react';
 import type { FamilyMemberRecord, SpouseRecord } from '@/lib/data/lang-genealogy';
 import { OptimizedPortrait } from '@/components/ui/OptimizedPortrait';
 import { cn } from '@/lib/utils';
@@ -266,19 +266,15 @@ export const AncestryCoupleNode = memo(function AncestryCoupleNode({ data }: Nod
               : 'bg-[#36383a] text-stone-200 border-white/20 hover:bg-[#2a2c2e]'
           )}
         >
-          {isCollapsed ? (
-            <>
-              <ChevronDown className="size-3" />
-              <span>
-                {member.firstName}&apos;s children ({childrenCount})
-              </span>
-            </>
-          ) : (
-            <>
-              <ChevronUp className="size-3" />
-              <span>{member.firstName}&apos;s children</span>
-            </>
-          )}
+          <ChevronDown
+            className={cn(
+              'size-3 shrink-0 transition-transform duration-200 ease-in-out',
+              !isCollapsed && 'rotate-180'
+            )}
+          />
+          <span>
+            {member.firstName}&apos;s children{isCollapsed ? ` (${childrenCount})` : ''}
+          </span>
         </button>
       )}
 

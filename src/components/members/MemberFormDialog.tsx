@@ -386,6 +386,9 @@ function MemberFormBody({
               <SelectItem value="3">Gen III</SelectItem>
               <SelectItem value="4">Gen IV</SelectItem>
               <SelectItem value="5">Gen V</SelectItem>
+              <SelectItem value="6">Gen VI</SelectItem>
+              <SelectItem value="7">Gen VII</SelectItem>
+              <SelectItem value="8">Gen VIII</SelectItem>
             </SelectContent>
           </Select>
         </div>

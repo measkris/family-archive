@@ -12,6 +12,7 @@ import {
   Globe2,
   Loader2,
   MapPin,
+  Newspaper,
   RefreshCw,
   Search,
   Sparkles,
@@ -23,6 +24,7 @@ import {
 } from '@/lib/data/lang-genealogy';
 import type { HeritageOriginRecord } from '@/lib/db/types';
 import type { OpenArchiveRecord } from '@/app/api/heritage/openarchives/route';
+import type { DelpherArticle } from '@/lib/heritage/delpher';
 import { useLanguage } from '@/components/i18n/LanguageContext';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -141,10 +143,32 @@ export function HeritageDataTables({
   const [placesLoading, setPlacesLoading] = useState(false);
   const [placesLoadedOnce, setPlacesLoadedOnce] = useState(false);
 
-  // 4. BrouwerTree & External Resources Index
+  // 4. Live KB Delpher Colonial Press & Archival Citations
+  const [delpherQuery, setDelpherQuery] = useState('"Parera" AND Tombariri');
+  const [delpherArticles, setDelpherArticles] = useState<DelpherArticle[]>([]);
+  const [delpherTotal, setDelpherTotal] = useState<number>(0);
+  const [delpherLoading, setDelpherLoading] = useState(false);
+  const [delpherLoadedOnce, setDelpherLoadedOnce] = useState(false);
+
   const [resourceCategory, setResourceCategory] = useState<string>('all');
   const [archiveCategory, setArchiveCategory] = useState('all');
   const [archiveSearch, setArchiveSearch] = useState('');
+
+  const searchDelpher = useCallback(async (queryText: string) => {
+    const q = queryText.trim();
+    if (!q) return;
+    setDelpherLoading(true);
+    try {
+      const res = await fetch(`/api/heritage/delpher?q=${encodeURIComponent(q)}&limit=6`);
+      const json = await res.json();
+      setDelpherArticles(Array.isArray(json.articles) ? json.articles : []);
+      setDelpherTotal(Number(json.totalFound || 0));
+    } catch (e) {
+      console.error('Delpher search error:', e);
+    } finally {
+      setDelpherLoading(false);
+    }
+  }, []);
 
   const filteredResources = useMemo(() => {
     if (resourceCategory === 'all') return FAMILY_TREE_RESOURCES;
@@ -247,7 +271,7 @@ export function HeritageDataTables({
     };
   }, [initialOrigins]);
 
-  // Lazy-load OpenArchives & Wikipedia on demand when switching tabs
+  // Lazy-load OpenArchives, Wikipedia & KB Delpher Press on demand when switching tabs
   const handleSubTabChange = useCallback(
     (nextTab: 'origins' | 'openarchives' | 'places' | 'sources') => {
       setSubTab(nextTab);
@@ -259,8 +283,21 @@ export function HeritageDataTables({
         setPlacesLoadedOnce(true);
         loadPlaces();
       }
+      if (nextTab === 'sources' && !delpherLoadedOnce) {
+        setDelpherLoadedOnce(true);
+        searchDelpher(delpherQuery);
+      }
     },
-    [oaLoadedOnce, placesLoadedOnce, oaQuery, searchOpenArchives, loadPlaces]
+    [
+      oaLoadedOnce,
+      placesLoadedOnce,
+      delpherLoadedOnce,
+      oaQuery,
+      delpherQuery,
+      searchOpenArchives,
+      loadPlaces,
+      searchDelpher,
+    ]
   );
 
   const filteredOrigins = useMemo(() => {
@@ -924,126 +961,135 @@ export function HeritageDataTables({
           </Card>
         </TabsContent>
 
-        {/* TAB 4: Family Tree Resources & Primary Archival Citations */}
+        {/* TAB 4: Live Colonial Press, Primary Citations & Bibliographic References */}
         <TabsContent value="sources" className="space-y-5">
-          {/* FamilySearch Solutions Gallery Callout Card */}
-          <div className="rounded-xl border border-sky-200 bg-linear-to-r from-sky-50/90 via-emerald-50/60 to-amber-50/50 p-4 sm:p-5 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-sky-300 bg-white text-[#0b4a68] font-bold text-[10px]">
-                    FamilySearch Ecosystem
-                  </Badge>
-                  <span className="text-[11px] font-semibold text-emerald-800">Free Open Resources &amp; Connectors</span>
-                </div>
-                <h3 className="font-heritage text-lg sm:text-xl font-bold text-stone-900">
-                  FamilySearch Solutions Gallery &amp; Global Tree Connections
-                </h3>
-                <p className="text-xs text-stone-600 max-w-3xl leading-relaxed">
-                  Discover free partner apps and tools featured in the FamilySearch Solutions Gallery. Connect your tree with <strong>RecordSeek</strong> (1-click source clipper), <strong>RootsFinder</strong> (cloud sync), <strong>BillionGraves</strong> (GPS cemetery markers), or export standard <strong>GEDCOM (.ged)</strong> directly to FamilySearch Genealogies.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <a
-                  href="https://www.familysearch.org/en/innovate/solutions-gallery/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#0b4a68] hover:bg-[#08354b] px-3 py-2 text-xs font-semibold text-white shadow-xs transition-colors cursor-pointer"
-                >
-                  Explore Solutions Gallery <ExternalLink className="size-3" />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Curated External Research & Archive Resources for Jacob Lang & Maria Tampemawa */}
+          {/* 1. Live KB Delpher Colonial Newspaper Reader (Actual OCR content in-app!) */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <CardTitle className="font-heritage text-2xl flex items-center gap-2">
-                    <BookOpen className="size-5 text-[#73a922]" />
-                    {t.familyResourcesTitle}
+                    <Newspaper className="size-5 text-amber-700" />
+                    Colonial Press Chronicle (Live KB Delpher OCR)
                   </CardTitle>
-                  <CardDescription>{t.familyResourcesSubtitle}</CardDescription>
+                  <CardDescription>
+                    Read digitized 19th &amp; 20th-century Dutch East Indies newspaper notices directly in-app via the Koninklijke Bibliotheek SRU v1.2 API.
+                  </CardDescription>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {[
-                    { id: 'all', label: 'All' },
-                    { id: 'familysearch', label: 'FamilySearch & Partners' },
-                    { id: 'Genealogy Tree', label: 'BrouwerTree' },
-                    { id: 'Civil Registry', label: 'Civil Registry' },
-                    { id: 'Research Tools', label: 'Tools & Memorials' },
-                    { id: 'Colonial Press', label: 'Colonial Press' },
-                  ].map((filter) => (
-                    <button
-                      key={filter.id}
-                      type="button"
-                      onClick={() => setResourceCategory(filter.id)}
-                      className={cn(
-                        'rounded-full px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
-                        resourceCategory === filter.id
-                          ? 'bg-[#0b4a68] text-white shadow-2xs'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      )}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
+                {delpherTotal > 0 && (
+                  <Badge variant="gold" className="font-mono text-xs shrink-0">
+                    {delpherTotal.toLocaleString()} historical press entries
+                  </Badge>
+                )}
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredResources.map((res) => (
-                  <a
-                    key={res.id}
-                    href={res.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-white hover:border-[#0b4a68]/50 hover:shadow-sm p-3.5 transition-all"
+
+              <div className="flex flex-wrap items-center gap-1.5 pt-2">
+                {[
+                  { label: 'Parera · Tombariri', query: '"Parera" AND Tombariri' },
+                  { label: 'Kuitert · Manado', query: '"Kuitert" AND Menado' },
+                  { label: 'J. Lang · Manado', query: '"J. Lang" AND Menado' },
+                  { label: 'H. Lang · Manado', query: '"H. Lang" AND Menado' },
+                  { label: 'Weintre · Manado', query: '"Weintre" AND Menado' },
+                  { label: 'Mamahit · Manado', query: '"Mamahit" AND Menado' },
+                ].map((preset) => (
+                  <button
+                    key={preset.query}
+                    type="button"
+                    onClick={() => {
+                      setDelpherQuery(preset.query);
+                      void searchDelpher(preset.query);
+                    }}
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
+                      delpherQuery === preset.query
+                        ? 'bg-amber-700 text-white shadow-2xs'
+                        : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+                    )}
                   >
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center justify-between gap-1.5">
-                        <Badge variant="outline" className="text-[10px] bg-white">
-                          {res.category}
-                        </Badge>
-                        <span className="text-[11px] font-medium text-stone-500">
-                          {res.provider}
-                        </span>
-                      </div>
-                      <h4 className="font-semibold text-sm text-stone-900 group-hover:text-[#0b4a68] transition-colors">
-                        {tc(res.title)}
-                      </h4>
-                      <p className="text-xs text-stone-600 leading-relaxed">
-                        {tc(res.description)}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-stone-200/70 text-[11px]">
-                      <span className="text-stone-500 flex items-center gap-1 truncate">
-                        <MapPin className="size-3 text-[#73a922] shrink-0" />
-                        <span className="truncate">{tc(res.region)}</span>
-                      </span>
-                      <span className="inline-flex items-center gap-1 font-semibold text-[#0b4a68] shrink-0 ml-2">
-                        {t.openExternalResource} <ExternalLink className="size-3" />
-                      </span>
-                    </div>
-                  </a>
+                    {preset.label}
+                  </button>
                 ))}
               </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void searchDelpher(delpherQuery);
+                }}
+                className="flex items-center gap-2 pt-2"
+              >
+                <Input
+                  value={delpherQuery}
+                  onChange={(e) => setDelpherQuery(e.target.value)}
+                  placeholder='Search colonial press (e.g. "Kuitert" AND Menado)...'
+                  className="h-8 text-xs max-w-md"
+                />
+                <Button type="submit" size="sm" variant="outline" className="h-8 text-xs" disabled={delpherLoading}>
+                  {delpherLoading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Search className="size-3.5" />
+                  )}
+                  Search Press
+                </Button>
+              </form>
+            </CardHeader>
+
+            <CardContent>
+              {delpherLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className="rounded-lg border border-stone-200 p-4 space-y-2">
+                      <Skeleton className="h-3.5 w-32" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-14 w-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : delpherArticles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {delpherArticles.map((art) => (
+                    <article
+                      key={art.id}
+                      className="rounded-xl border border-amber-200/80 bg-amber-50/25 p-4 flex flex-col justify-between gap-2.5"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <span className="font-semibold text-amber-900 truncate">{art.newspaper}</span>
+                          <span className="font-mono text-stone-500 shrink-0">{art.date}</span>
+                        </div>
+                        <h4 className="font-heritage font-bold text-sm text-stone-900 leading-snug">
+                          {art.title}
+                        </h4>
+                        <p className="text-xs text-stone-700 leading-relaxed italic border-l-2 border-amber-400 pl-2.5">
+                          &ldquo;{art.excerpt}&rdquo;
+                        </p>
+                      </div>
+                      <div className="pt-2 border-t border-amber-200/50 text-[10px] font-mono text-stone-500">
+                        Reference: {art.citation}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-stone-500 italic py-4 text-center">
+                  No colonial press OCR matches for this query — try selecting one of the family presets above.
+                </p>
+              )}
             </CardContent>
           </Card>
 
+          {/* 2. Primary Archival Citations Table (1723 – 1999) */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <CardTitle className="font-heritage text-2xl">
-                    Primary Archival Citations (1723 – 1962)
+                    Primary Archival Citations (1723 – 1999)
                   </CardTitle>
                   <CardDescription>
-                    Historical records transcribed from BrouwerTree, Nationaal Archief VOC rolls,
-                    Delpher newspapers, KITLV Leiden, OpenArchives.nl, and Dutch Parliament.
+                    Historical records transcribed from BrouwerTree Parts I–VII, FamilySearch, Nationaal Archief VOC rolls,
+                    KB Delpher newspapers, KITLV Leiden, OpenArchives.nl, and Dutch Parliament.
                   </CardDescription>
                 </div>
 
@@ -1109,7 +1155,7 @@ export function HeritageDataTables({
                         <TableCell className="text-xs text-muted-foreground max-w-[220px]">
                           <div>{a.sourceCitation}</div>
                           <div className="font-mono text-[10px] mt-0.5 opacity-80">
-                            brouwertree.com/{a.pageRef}
+                            Ref: {a.pageRef}
                           </div>
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
@@ -1132,6 +1178,71 @@ export function HeritageDataTables({
                   })}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+
+          {/* 3. Compact Archival Reference Bibliography (Clean non-link citations) */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle className="font-heritage text-xl flex items-center gap-2">
+                    <BookOpen className="size-4 text-[#0b4a68]" />
+                    Archival Reference Bibliography
+                  </CardTitle>
+                  <CardDescription>
+                    Repositories and FamilySearch ecosystem datasets referenced to verify Generations I–VIII (1805–1999+).
+                  </CardDescription>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'familysearch', label: 'FamilySearch Ecosystem' },
+                    { id: 'Genealogy Tree', label: 'BrouwerTree' },
+                    { id: 'Civil Registry', label: 'Civil Registry' },
+                    { id: 'Colonial Press', label: 'Colonial Press' },
+                  ].map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setResourceCategory(filter.id)}
+                      className={cn(
+                        'rounded-full px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
+                        resourceCategory === filter.id
+                          ? 'bg-[#0b4a68] text-white shadow-2xs'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      )}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ol className="divide-y divide-stone-200/80 text-xs">
+                {filteredResources.map((res, idx) => (
+                  <li key={res.id} className="py-2.5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5">
+                    <div className="space-y-0.5 pr-4">
+                      <div className="font-semibold text-stone-900">
+                        <span className="font-mono text-stone-400 mr-1.5">[{idx + 1}]</span>
+                        {tc(res.title)}
+                      </div>
+                      <p className="text-[11px] text-stone-600 leading-relaxed pl-6">
+                        {tc(res.description)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 pl-6 sm:pl-0">
+                      <Badge variant="outline" className="text-[10px] bg-stone-50 font-normal">
+                        {res.provider}
+                      </Badge>
+                      <span className="text-[10px] text-stone-500 hidden md:inline">
+                        {tc(res.region)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </CardContent>
           </Card>
         </TabsContent>

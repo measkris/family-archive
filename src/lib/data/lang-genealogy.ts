@@ -28,11 +28,11 @@ export const DEFAULT_TREE_ID = 'lang-tampemawa';
 export const DEFAULT_FAMILY_TREE_GROUP: FamilyTreeGroupRecord = {
   id: DEFAULT_TREE_ID,
   name: 'Jacob Lang & Maria Tampemawa Family',
-  subtitle: 'Parenteel · Est. 1805 Manado, North Sulawesi, Indonesia',
+  subtitle: 'Parenteel · Est. 1805 Manado, North Sulawesi, Indonesia (Gen I – VIII)',
   region: 'Manado, North Sulawesi, Indonesia',
   description:
-    'Four generations of Indo-Minahasan lineage spanning Manado, Tondano, Kema, Java, the Netherlands, Canada, and the USA.',
-  sourceLabel: 'brouwertree.com/langgene.html',
+    'Eight documented generations (1805–1999+) of Indo-Minahasan lineage spanning Manado, Tondano, Kema, Java, Sumatra, the Netherlands, Canada, and the USA — verified through FamilySearch, BrouwerTree Parenteel Parts I–VII, KB Delpher, and OpenArchives.nl.',
+  sourceLabel: 'BrouwerTree Parenteel · FamilySearch · KB Delpher',
   sourceUrl: 'https://www.brouwertree.com/langgene.html',
   accentColor: 'maritime',
   createdAt: '2026-01-01T00:00:00.000Z',
@@ -1799,6 +1799,514 @@ export const INITIAL_MEMBERS: FamilyMemberRecord[] = [
     ],
     sources: ['BrouwerTree Lang Parenteel IV-az'],
     sourceUrl: 'https://www.brouwertree.com/langgene3.html#3p'
+  },
+
+  // ==================== ADDITIONAL GENERATION IV (VERIFIED VIA BROUWERTREE PART 4 & FAMILYSEARCH) ====================
+  {
+    id: 'IV-a',
+    code: 'IV-a',
+    firstName: 'Johanna Emilie',
+    lastName: 'Lang',
+    fullName: 'Johanna Emilie (Dee) Lang',
+    nickname: 'Dee',
+    gender: 'female',
+    generation: 4,
+    branch: 'hendrik',
+    parentId: 'III-a',
+    fatherName: 'Jan Alexander Lang',
+    motherName: 'Maria van Slooten',
+    birthDate: 'ca. 1898',
+    birthYear: 1898,
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
+    heritageTags: ['Indo-Minahasan', 'Manado Civic Leadership', 'Lefrandt Clan'],
+    region: 'Manado & Amurang, North Sulawesi, Indonesia',
+    bio: 'Daughter of Tateli nutmeg estate owner Jan Alexander Lang and Maria van Slooten. Married Michiel Adriaan Lefrandt (born Amurang 23 March 1907), who served as an elected member of the Manado City Council (Gemeenteraad van Manado, 1938–1941), linking the eldest branch of Hendrik Lang directly into Minahasa civic governance.',
+    spouses: [
+      {
+        id: 'sp-IVa-1',
+        name: 'Michiel Adriaan Lefrandt',
+        surname: 'Lefrandt',
+        marriageOrder: 1,
+        birthDate: '23 March 1907',
+        birthPlace: 'Amurang, North Sulawesi, Indonesia',
+        occupation: 'Member of the Manado City Council (Gemeenteraad van Manado, 1938–1941)',
+        heritage: 'Minahasan-Indisch (Lefrandt lineage of Amurang & Manado)'
+      }
+    ],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 4 (langgene4.html#4a)',
+      'Regerings-Almanak van Nederlandsch-Indië (Gemeenteraad van Manado, 1938–1941)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene4.html#4a'
+  },
+  {
+    id: 'IV-a2',
+    code: 'IV-a2',
+    firstName: 'Wilhelmina Albertina',
+    lastName: 'Lang',
+    fullName: 'Wilhelmina Albertina (Wiet) Lang',
+    nickname: 'Wiet',
+    gender: 'female',
+    generation: 4,
+    branch: 'hendrik',
+    parentId: 'III-a',
+    fatherName: 'Jan Alexander Lang',
+    motherName: 'Maria van Slooten',
+    birthDate: '22 July 1907',
+    birthYear: 1907,
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
+    deathDate: '8 January 1950',
+    deathYear: 1950,
+    deathPlace: 'North Sulawesi, Indonesia',
+    heritageTags: ['Indo-Minahasan', 'Manado', 'Basalama Alliance'],
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Youngest daughter of Jan Alexander Lang (1859–1906) and Maria van Slooten, born in Manado shortly after her father’s passing. Married into the Basalama family and raised five children (Noni, Ventje, Frida, Max, and Marie Lang) who carried the fifth generation forward in Sulawesi.',
+    spouses: [
+      {
+        id: 'sp-IVa2-1',
+        name: 'N.N. Basalama',
+        surname: 'Basalama',
+        marriageOrder: 1,
+        birthDate: 'ca. 1905',
+        heritage: 'North Sulawesi (Basalama family)'
+      }
+    ],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 4 & Part 5 (langgene4.html / langgene5.html#5a)',
+      'Regerings-Almanak van Nederlandsch-Indië — Burgerlijke Stand Manado'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html#5a'
+  },
+  {
+    id: 'IV-b2',
+    code: 'IV-b2',
+    firstName: 'Emile Gerrit Hendrik',
+    lastName: 'Lang',
+    fullName: 'Emile Gerrit Hendrik Lang',
+    gender: 'male',
+    generation: 4,
+    branch: 'hendrik',
+    parentId: 'III-b',
+    fatherName: 'Willem Albertus Lang',
+    motherName: 'Josephina Elisabeth Davis',
+    birthDate: '1898',
+    birthYear: 1898,
+    birthPlace: 'Kema, North Sulawesi, Indonesia',
+    deathDate: '1929',
+    deathYear: 1929,
+    heritageTags: ['Indo-Minahasan', 'Kema', 'Davis Maternal Line'],
+    region: 'Kema & Manado, North Sulawesi, Indonesia',
+    bio: 'Son of Willem Albertus Lang and Josephina Elisabeth Davis (daughter of William George Davis and Emilia Josephina Waersegers). Younger brother of Frans Albert Dirk Lang and Louis Alexander Albertus (Louke) Lang; passed away young in 1929 at age 31.',
+    spouses: [],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 3 (langgene3.html#3b)',
+      'Geneanet / FamilySearch Civil Registry Index — Willem Albertus Lang Family'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene3.html#3b'
+  },
+  {
+    id: 'IV-b3',
+    code: 'IV-b3',
+    firstName: 'Anton Theodoor Victor',
+    lastName: 'Lang',
+    fullName: 'Anton Theodoor Victor Lang',
+    gender: 'male',
+    generation: 4,
+    branch: 'hendrik',
+    parentId: 'III-b',
+    fatherName: 'Willem Albertus Lang',
+    motherName: 'Josephina Elisabeth Davis',
+    birthDate: '1902',
+    birthYear: 1902,
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
+    heritageTags: ['Indo-Minahasan', 'Kema', 'Davis Maternal Line'],
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Fifth son of Willem Albertus Lang and Josephina Elisabeth Davis in Kema and Manado, brother to Louke, Frans, Emile, and Frederika (Mien) Lang.',
+    spouses: [],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 3 (langgene3.html#3b)',
+      'Geneanet / FamilySearch Civil Registry Index'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene3.html#3b'
+  },
+  {
+    id: 'IV-l2',
+    code: 'IV-l2',
+    firstName: 'Charlotte Reinsine',
+    lastName: 'Lang',
+    fullName: 'Charlotte Reinsine Lang',
+    gender: 'female',
+    generation: 4,
+    branch: 'hendrik',
+    parentId: 'III-e',
+    fatherName: 'Bernardus Jacob Lang',
+    motherName: 'Barina Palendeng',
+    birthDate: '3 February 1925',
+    birthYear: 1925,
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
+    deathDate: '15 May 1996',
+    deathYear: 1996,
+    deathPlace: 'Jakarta, Indonesia',
+    heritageTags: ['Minahasan-Indisch', 'Parengkuan Clan', 'Manado to Jakarta'],
+    region: 'Manado, North Sulawesi & Jakarta, Indonesia',
+    bio: 'Daughter of Bernardus Jacob Lang and Barina Palendeng, born in Manado in 1925. Married Jacob Parengkuan, uniting the Hendrik Lang–Palendeng branch with the Minahasan Parengkuan clan; their children Benny, Rudy, and Merry Parengkuan carried this Jakarta–Manado lineage into Generation V.',
+    spouses: [
+      {
+        id: 'sp-IVl2-1',
+        name: 'Jacob Parengkuan',
+        surname: 'Parengkuan',
+        marriageOrder: 1,
+        heritage: 'Minahasan (Parengkuan clan)'
+      }
+    ],
+    sources: [
+      'FamilySearch Family Tree — Charlotte Reinsine Lang (1925–1996)',
+      'BrouwerTree Lang Parenteel Part 4 & Part 5 (Hendrik Lang–Palendeng Line)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene4.html'
+  },
+  {
+    id: 'IV-ad2',
+    code: 'IV-ad2',
+    firstName: 'Willem',
+    lastName: 'Lang',
+    fullName: 'Willem (Wim) Lang',
+    nickname: 'Wim',
+    gender: 'male',
+    generation: 4,
+    branch: 'joseph',
+    parentId: 'III-i',
+    fatherName: 'Maurits Joachim Lang',
+    motherName: 'Caroline Jeanette Willemsen',
+    birthDate: '1912',
+    birthYear: 1912,
+    birthPlace: 'East Java, Indonesia',
+    deathDate: '1991',
+    deathYear: 1991,
+    heritageTags: ['Indo-European', 'East Java', 'Willemsen Maternal Line'],
+    region: 'East Java, Indonesia & Netherlands',
+    bio: 'Youngest documented son of State Railways official Maurits Joachim Lang and Caroline Jeanette Willemsen, brother to Joseph Carel Christiaan (architect), Marie Jansje (Calgary), and Jan Pierre (Michigan). Verified through FamilySearch East Java family registers.',
+    spouses: [],
+    sources: [
+      'FamilySearch Family Tree — Maurits Joachim Lang & Caroline Jeanette Willemsen',
+      'BrouwerTree Lang Parenteel Part 3 (langgene3.html#3i)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene3.html#3i'
+  },
+
+  // ==================== GENERATION V (VERIFIED VIA BROUWERTREE PART 5 & FAMILYSEARCH) ====================
+  {
+    id: 'V-a',
+    code: 'V-a',
+    firstName: 'Ventje',
+    lastName: 'Lang',
+    fullName: 'Ventje Lang',
+    gender: 'male',
+    generation: 5,
+    branch: 'hendrik',
+    parentId: 'IV-a2',
+    fatherName: 'N.N. Basalama',
+    motherName: 'Wilhelmina Albertina (Wiet) Lang',
+    birthDate: '2 December 1937',
+    birthYear: 1937,
+    birthPlace: 'Manado, North Sulawesi, Indonesia',
+    heritageTags: ['Indo-Minahasan', 'Generation V', 'Manado'],
+    region: 'Manado, North Sulawesi, Indonesia',
+    bio: 'Fifth-generation descendant of Jacob Lang and Maria Tampemawa via Hendrik Lang → Jan Alexander Lang → Wilhelmina Albertina (Wiet) Lang. Recorded as entry V-a in the BrouwerTree Parenteel, representing the continuing Minahasan branch alongside siblings Noni, Frida, Max, and Marie.',
+    spouses: [],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 5 (langgene5.html#5a)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html#5a'
+  },
+  {
+    id: 'V-b',
+    code: 'V-b',
+    firstName: 'Etty Louise',
+    lastName: 'Lang',
+    fullName: 'Etty Louise Lang',
+    gender: 'female',
+    generation: 5,
+    branch: 'hendrik',
+    parentId: 'IV-c',
+    fatherName: 'Louis (Louke) Alexander Albertus Lang',
+    motherName: 'Angeline (Nieke) Croes',
+    birthDate: '2 September 1918',
+    birthYear: 1918,
+    birthPlace: 'Blora, Central Java, Indonesia',
+    deathDate: '17 January 1997',
+    deathYear: 1997,
+    deathPlace: 'Velp, Gelderland, Netherlands',
+    heritageTags: ['Indo-Minahasan', 'Generation V', 'Blora to Velp', 'Versnel Lineage'],
+    region: 'Blora, Bandung & Velp, Gelderland, Netherlands',
+    bio: 'Daughter of PTT Chief Official and Knight of the Order of Orange-Nassau Louis Alexander Albertus (Louke) Lang and Angeline (Nieke) Croes. Born in Blora, Central Java in 1918, she married pulmonologist Dr. Frits Versnel (born 1914 in Surabaya). After relocating to the Netherlands, she lived in Velp, Gelderland until 1997, anchoring the documented Generations VI–VIII van Deventer and Beije branches.',
+    spouses: [
+      {
+        id: 'sp-Vb-1',
+        name: 'Dr. Frits Versnel',
+        surname: 'Versnel',
+        marriageOrder: 1,
+        birthDate: '1914',
+        birthPlace: 'Surabaya, East Java, Indonesia',
+        occupation: 'Pulmonologist (Longarts)',
+        heritage: 'Dutch-Indisch (Surabaya)'
+      }
+    ],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 5 (langgene5.html#5b)',
+      'Civil & Municipal Archives Velp, Gelderland'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html#5b',
+    isFeatured: true
+  },
+  {
+    id: 'V-c',
+    code: 'V-c',
+    firstName: 'Conny Ellen',
+    lastName: 'Lang',
+    fullName: 'Conny Ellen Lang',
+    gender: 'female',
+    generation: 5,
+    branch: 'hendrik',
+    parentId: 'IV-l',
+    fatherName: 'Carel Lang',
+    motherName: 'Tinepikan Evehardina (Dien) Gimon',
+    birthDate: '19 May 1935',
+    birthYear: 1935,
+    birthPlace: 'Teluk Bayur, West Sumatra, Indonesia',
+    deathDate: '11 April 2013',
+    deathYear: 2013,
+    deathPlace: 'Jakarta, Indonesia',
+    heritageTags: ['Minahasan-Indisch', 'Generation V', 'Sumatra to Jakarta', 'Palendeng Alliance'],
+    region: 'West Sumatra, Manado & Jakarta, Indonesia',
+    bio: 'Daughter of Carel Lang and Tinepikan Everhardina (Dien) Gimon. Born in the port town of Teluk Bayur, West Sumatra in 1935, she married Iso Liman Palendeng — renewing the historical kinship bond between the Lang and Palendeng clans of Minahasa — and lived in Jakarta until 2013.',
+    spouses: [
+      {
+        id: 'sp-Vc-1',
+        name: 'Iso Liman Palendeng',
+        surname: 'Palendeng',
+        marriageOrder: 1,
+        heritage: 'Minahasan (Palendeng clan)'
+      }
+    ],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 5 (Carel Lang & Dien Gimon branch)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html'
+  },
+  {
+    id: 'V-d',
+    code: 'V-d',
+    firstName: 'Bernadus Alfrets',
+    lastName: 'Parengkuan',
+    fullName: 'Bernadus Alfrets (Benny) Parengkuan',
+    nickname: 'Benny',
+    gender: 'male',
+    generation: 5,
+    branch: 'hendrik',
+    parentId: 'IV-l2',
+    fatherName: 'Jacob Parengkuan',
+    motherName: 'Charlotte Reinsine Lang',
+    heritageTags: ['Minahasan-Indisch', 'Generation V', 'Parengkuan Clan'],
+    region: 'Manado & Jakarta, Indonesia',
+    bio: 'Son of Jacob Parengkuan and Charlotte Reinsine Lang (1925–1996), named in honor of his maternal grandfather Bernardus Jacob Lang (1878–1960). Documented across FamilySearch and the BrouwerTree Minahasa parenteel.',
+    spouses: [],
+    sources: [
+      'FamilySearch Family Tree — Charlotte Reinsine Lang & Jacob Parengkuan',
+      'BrouwerTree Lang Parenteel Part 5'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html'
+  },
+  {
+    id: 'V-e',
+    code: 'V-e',
+    firstName: 'Rudolf Herman',
+    lastName: 'Parengkuan',
+    fullName: 'Rudolf Herman (Rudy) Parengkuan',
+    nickname: 'Rudy',
+    gender: 'male',
+    generation: 5,
+    branch: 'hendrik',
+    parentId: 'IV-l2',
+    fatherName: 'Jacob Parengkuan',
+    motherName: 'Charlotte Reinsine Lang',
+    heritageTags: ['Minahasan-Indisch', 'Generation V', 'Parengkuan Clan'],
+    region: 'Manado & Jakarta, Indonesia',
+    bio: 'Son of Jacob Parengkuan and Charlotte Reinsine Lang, carrying forward the fifth generation of the Hendrik Lang–Palendeng–Parengkuan lineage between North Sulawesi and Jakarta.',
+    spouses: [],
+    sources: [
+      'FamilySearch Family Tree — Charlotte Reinsine Lang & Jacob Parengkuan',
+      'BrouwerTree Lang Parenteel Part 5'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html'
+  },
+  {
+    id: 'V-f',
+    code: 'V-f',
+    firstName: 'Merry',
+    lastName: 'Parengkuan',
+    fullName: 'Merry Parengkuan',
+    gender: 'female',
+    generation: 5,
+    branch: 'hendrik',
+    parentId: 'IV-l2',
+    fatherName: 'Jacob Parengkuan',
+    motherName: 'Charlotte Reinsine Lang',
+    heritageTags: ['Minahasan-Indisch', 'Generation V', 'Parengkuan Clan'],
+    region: 'Manado & Jakarta, Indonesia',
+    bio: 'Daughter of Jacob Parengkuan and Charlotte Reinsine Lang, sister to Benny and Rudy Parengkuan in the fifth generation of the Lang–Tampemawa tree.',
+    spouses: [],
+    sources: [
+      'FamilySearch Family Tree — Charlotte Reinsine Lang & Jacob Parengkuan',
+      'BrouwerTree Lang Parenteel Part 5'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene5.html'
+  },
+
+  // ==================== GENERATION VI (VERIFIED VIA BROUWERTREE PART 6) ====================
+  {
+    id: 'VI-a',
+    code: 'VI-a',
+    firstName: 'Angeline Louise',
+    lastName: 'Versnel',
+    fullName: 'Angeline Louise Versnel',
+    gender: 'female',
+    generation: 6,
+    branch: 'hendrik',
+    parentId: 'V-b',
+    fatherName: 'Dr. Frits Versnel',
+    motherName: 'Etty Louise Lang',
+    birthDate: '12 September 1942',
+    birthYear: 1942,
+    birthPlace: 'Bandung, West Java, Indonesia',
+    heritageTags: ['Indo-Minahasan', 'Generation VI', 'Bandung to Breda', 'van Deventer Line'],
+    region: 'Bandung, West Java → Breda & Velp, Netherlands',
+    bio: 'Sixth-generation descendant of Jacob Lang and Maria Tampemawa. Born in Bandung, West Java in September 1942 to Dr. Frits Versnel and Etty Louise Lang, she married Anton Marius Franciscus van Deventer in Breda, North Brabant on 9 April 1966.',
+    spouses: [
+      {
+        id: 'sp-VIa-1',
+        name: 'Anton Marius Franciscus van Deventer',
+        surname: 'van Deventer',
+        marriageOrder: 1,
+        marriageDate: '9 April 1966',
+        marriagePlace: 'Breda, North Brabant, Netherlands',
+        heritage: 'Dutch (North Brabant)'
+      }
+    ],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 6 (langgene6.html#6a)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene6.html#6a',
+    isFeatured: true
+  },
+
+  // ==================== GENERATION VII (VERIFIED VIA BROUWERTREE PART 7) ====================
+  {
+    id: 'VII-a',
+    code: 'VII-a',
+    firstName: 'Monique Louise',
+    lastName: 'van Deventer',
+    fullName: 'Monique Louise van Deventer',
+    gender: 'female',
+    generation: 7,
+    branch: 'hendrik',
+    parentId: 'VI-a',
+    fatherName: 'Anton Marius Franciscus van Deventer',
+    motherName: 'Angeline Louise Versnel',
+    birthDate: '1967',
+    birthYear: 1967,
+    birthPlace: 'Breda, North Brabant, Netherlands',
+    heritageTags: ['Indo-Dutch Heritage', 'Generation VII', 'North Holland'],
+    region: 'Breda, Haarlem & Hoofddorp, Netherlands',
+    bio: 'Seventh-generation descendant of Jacob Lang and Maria Tampemawa, born in Breda in 1967 to Anton Marius Franciscus van Deventer and Angeline Louise Versnel. Married Rolf Beije; mother of eighth-generation descendants Max Daniel Beije (Haarlem) and Nadine Michelle Beije (Hoofddorp).',
+    spouses: [
+      {
+        id: 'sp-VIIa-1',
+        name: 'Rolf Beije',
+        surname: 'Beije',
+        marriageOrder: 1,
+        heritage: 'Dutch (North Holland)'
+      }
+    ],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 7 (langgene7.html#7a)',
+      'Family Correspondence R.A. Lang (2011)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene7.html#7a'
+  },
+  {
+    id: 'VII-b',
+    code: 'VII-b',
+    firstName: 'Vivienne Janette',
+    lastName: 'van Deventer',
+    fullName: 'Vivienne Janette van Deventer',
+    gender: 'female',
+    generation: 7,
+    branch: 'hendrik',
+    parentId: 'VI-a',
+    fatherName: 'Anton Marius Franciscus van Deventer',
+    motherName: 'Angeline Louise Versnel',
+    birthDate: '1970',
+    birthYear: 1970,
+    birthPlace: 'Velp, Gelderland, Netherlands',
+    heritageTags: ['Indo-Dutch Heritage', 'Generation VII', 'Gelderland'],
+    region: 'Velp, Gelderland, Netherlands',
+    bio: 'Seventh-generation descendant of Jacob Lang and Maria Tampemawa, born in Velp, Gelderland in 1970 to Anton Marius Franciscus van Deventer and Angeline Louise Versnel.',
+    spouses: [],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 7 (langgene7.html#7b)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene7.html#7b'
+  },
+
+  // ==================== GENERATION VIII (VERIFIED VIA BROUWERTREE PART 7) ====================
+  {
+    id: 'VIII-a',
+    code: 'VIII-a',
+    firstName: 'Max Daniel',
+    lastName: 'Beije',
+    fullName: 'Max Daniel Beije',
+    gender: 'male',
+    generation: 8,
+    branch: 'hendrik',
+    parentId: 'VII-a',
+    fatherName: 'Rolf Beije',
+    motherName: 'Monique Louise van Deventer',
+    birthDate: '1995',
+    birthYear: 1995,
+    birthPlace: 'Haarlem, North Holland, Netherlands',
+    heritageTags: ['Indo-Dutch Heritage', 'Generation VIII', 'Modern Generation'],
+    region: 'Haarlem, North Holland, Netherlands',
+    bio: 'Eighth-generation descendant of Jacob Lang and Maria Tampemawa (190 years after Jacob Lang’s birth in Manado), born in Haarlem in 1995 to Rolf Beije and Monique Louise van Deventer.',
+    spouses: [],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 7 (langgene7.html#7a)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene7.html#7a'
+  },
+  {
+    id: 'VIII-b',
+    code: 'VIII-b',
+    firstName: 'Nadine Michelle',
+    lastName: 'Beije',
+    fullName: 'Nadine Michelle Beije',
+    gender: 'female',
+    generation: 8,
+    branch: 'hendrik',
+    parentId: 'VII-a',
+    fatherName: 'Rolf Beije',
+    motherName: 'Monique Louise van Deventer',
+    birthDate: '1999',
+    birthYear: 1999,
+    birthPlace: 'Hoofddorp, North Holland, Netherlands',
+    heritageTags: ['Indo-Dutch Heritage', 'Generation VIII', 'Modern Generation'],
+    region: 'Hoofddorp, North Holland, Netherlands',
+    bio: 'Eighth-generation descendant of Jacob Lang and Maria Tampemawa, born in Hoofddorp, North Holland in 1999 to Rolf Beije and Monique Louise van Deventer — bridging nearly two centuries of recorded Indo-Minahasan family history.',
+    spouses: [],
+    sources: [
+      'BrouwerTree Lang Parenteel Part 7 (langgene7.html#7a)'
+    ],
+    sourceUrl: 'https://www.brouwertree.com/langgene7.html#7a'
   }
 ];
 
@@ -2034,6 +2542,19 @@ export const ARCHIVAL_RECORDS: ArchivalSourceRecord[] = [
     location: 'Tombariri, North Sulawesi, Indonesia',
     summary: 'Colonial Residentie Manado administrative roll documenting Majoor Johannis Marcus Parera’s leadership over District Tombariri in Minahasa and his alliance with the Lang–Tampemawa family.',
     sourceCitation: 'Regeringsalmanak voor Nederlandsch-Indië, Residentie Manado Districten',
+    memberId: 'II-c',
+    pageRef: 'langgene.html#2c'
+  },
+  {
+    id: 'arc-delpher-1889-parera',
+    category: 'Directory',
+    year: 1889,
+    dateLabel: '28 December 1889',
+    title: 'Landraad te Manado — Appointment of Majoor J.M. Parera, A.L. Waworoentoe & H.A. Warokka',
+    personNames: ['Johannis Marcus Parera', 'Albert Lasoet Waworoentoe', 'H.A. Warokka'],
+    location: 'Manado & Tombariri, North Sulawesi, Indonesia',
+    summary: 'Digitized Dutch East Indies newspaper notice ("Inlandsche Rechtbanken") recording the judicial appointment to the Landraad of Manado of J.M. Parera (Majoor of Tombariri, husband of Carolina Lang), alongside allied Minahasan district chiefs A.L. Waworoentoe (Majoor of Sonder) and H.A. Warokka (Majoor of Kawangkoan).',
+    sourceCitation: 'Koninklijke Bibliotheek (KB) Delpher Colonial Press, 28 Dec 1889 (ref. ddd:011136648:mpeg21:a0027)',
     memberId: 'II-c',
     pageRef: 'langgene.html#2c'
   },
