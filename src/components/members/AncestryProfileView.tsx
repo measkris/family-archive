@@ -918,7 +918,7 @@ export function AncestryProfileView({
               onClick={() => setSubTab('lifestory')}
               className="inline-flex items-center gap-1.5 hover:text-white cursor-pointer"
             >
-              <FileText className="size-3.5" /> Notes &amp; LifeStory
+              <FileText className="size-3.5" /> Notes &amp; Life Story
             </button>
             <button
               type="button"
@@ -1802,7 +1802,7 @@ export function AncestryProfileView({
           <div className="max-w-3xl mx-auto rounded-xl border border-stone-300 bg-white p-6 sm:p-8 space-y-5 shadow-xs">
             <div className="border-b border-stone-200 pb-4">
               <div className="text-xs font-bold uppercase tracking-wider text-[#73a922]">
-                LifeStory Narrative
+                Life Story Narrative
               </div>
               <h2 className="font-heritage text-3xl font-bold text-[#222426] mt-1">
                 The Story of {member.fullName}
